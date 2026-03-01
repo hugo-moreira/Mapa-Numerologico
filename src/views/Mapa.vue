@@ -59,6 +59,9 @@
           <button @click="salvar" class="btn-acao">Salvar</button>
           <router-link to="/" class="btn-acao">Novo</router-link>
           <button @click="imprimir" class="btn-acao">Imprimir</button>
+          <button @click="baixarPDF" :disabled="gerandoPDF" class="btn-acao btn-pdf">
+            {{ gerandoPDF ? 'Gerando...' : 'PDF Cliente' }}
+          </button>
         </div>
       </div>
 
@@ -613,6 +616,7 @@ import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useMapaStore } from '../stores/mapa.js'
 import { useHistoricoStore } from '../stores/historico.js'
+import { gerarRelatorioPDF } from '../relatorio/pdf.js'
 
 const store = useMapaStore()
 const historico = useHistoricoStore()
@@ -726,6 +730,18 @@ function salvar() {
 function imprimir() {
   window.print()
 }
+
+const gerandoPDF = ref(false)
+
+async function baixarPDF() {
+  if (!m.value) return
+  gerandoPDF.value = true
+  try {
+    await gerarRelatorioPDF(m.value, store.nome, store.dia, store.mes, store.ano)
+  } finally {
+    gerandoPDF.value = false
+  }
+}
 </script>
 
 <style scoped>
@@ -837,6 +853,21 @@ function imprimir() {
 
 .btn-acao:hover {
   background: #3a5a7a;
+}
+
+.btn-pdf {
+  background: #c47a20;
+  border-color: #e09030;
+  font-weight: bold;
+}
+
+.btn-pdf:hover {
+  background: #d4873a;
+}
+
+.btn-pdf:disabled {
+  opacity: 0.6;
+  cursor: default;
 }
 
 /* ============================================================
