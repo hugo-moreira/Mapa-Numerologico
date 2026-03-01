@@ -100,6 +100,10 @@ export function calcularComoReagem(mapa) {
  * - VG (Vulgaridade / Incerteza / Inseguranca): VNs 3, 5, 9
  * - SC (Suicidio / Dependencia / Depressao): VNs 2, 4, 6
  *
+ * Os tres percentuais sao normalizados para fechar em 100% dentro da triade
+ * de riscos (Agressividade/Inseguranca/Dependencia), mantendo consistencia
+ * com a tabela de percentuais por ciclo.
+ *
  * Risco considerado ALTO quando acima de 40%.
  * Risco de CP quando soma A + C > 80%.
  * Risco de SC quando soma A + B > 80%.
@@ -109,14 +113,22 @@ export function calcularComoReagem(mapa) {
  */
 export function calcularRiscos(mapa) {
   const valores = tabularMapa(mapa)
-  const cp = percentualGrupo(valores, [1, 4, 7, 8])
-  const vg = percentualGrupo(valores, [3, 5, 9])
-  const sc = percentualGrupo(valores, [2, 4, 6])
+  const nCp = valores.filter(v => [1, 4, 7, 8].includes(v)).length
+  const nVg = valores.filter(v => [3, 5, 9].includes(v)).length
+  const nSc = valores.filter(v => [2, 4, 6].includes(v)).length
+  const total = nCp + nVg + nSc
+
+  const cp = total === 0 ? 0 : Math.round((nCp / total) * 100)
+  const vg = total === 0 ? 0 : Math.round((nVg / total) * 100)
+  const sc = total === 0 ? 0 : 100 - cp - vg
 
   return {
     cp,
     vg,
     sc,
+    agressividade: cp,
+    inseguranca: vg,
+    dependencia: sc,
     riscoCP: cp + sc > 80,
     riscoSC: cp + vg > 80,
     altos: [

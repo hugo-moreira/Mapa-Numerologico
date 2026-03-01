@@ -395,7 +395,9 @@ export function calcularPercentuaisPorCiclo(mapaBase) {
  * @property {number} agressividade - Percentual risco agressividade (%).
  * @property {number} inseguranca - Percentual risco inseguranca (%).
  * @property {number} dependencia - Percentual risco dependencia (%).
- * @property {number} cp - Percentual CP (crime passional / solidao) (%).
+ * @property {number} cp - Percentual CP (equivale a agressividade) (%).
+ * @property {number} vg - Percentual VG (equivale a inseguranca) (%).
+ * @property {number} sc - Percentual SC (equivale a dependencia) (%).
  */
 function calcularBlocoPercentual(vns) {
   function pct(grupo, base) {
@@ -448,10 +450,12 @@ function calcularBlocoPercentual(vns) {
     const dep = vns.filter(v => [2, 4, 6].includes(v)).length
     const total = ag + ins + dep
     if (total === 0) return { agressividade: 0, inseguranca: 0, dependencia: 0 }
+    const pAg = Math.round((ag / total) * 100)
+    const pIns = Math.round((ins / total) * 100)
     return {
-      agressividade: Math.round((ag / total) * 100),
-      inseguranca: Math.round((ins / total) * 100),
-      dependencia: Math.round((dep / total) * 100),
+      agressividade: pAg,
+      inseguranca: pIns,
+      dependencia: 100 - pAg - pIns,
     }
   })()
 
@@ -469,6 +473,8 @@ function calcularBlocoPercentual(vns) {
     agressividade: riscos.agressividade,
     inseguranca: riscos.inseguranca,
     dependencia: riscos.dependencia,
-    cp: pct([1, 4, 7, 8]),
+    cp: riscos.agressividade,
+    vg: riscos.inseguranca,
+    sc: riscos.dependencia,
   }
 }
