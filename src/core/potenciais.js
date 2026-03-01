@@ -29,7 +29,7 @@ function percentualGrupo(mapaValores, grupo) {
  *
  * Define como a pessoa toma decisoes:
  * - Razao: VNs 1, 4, 7, 8, 22
- * - Emocao: VNs 2, 3, 6, 9, 11
+ * - Emocao: VNs 2, 3, 5, 6, 9, 11
  * - Razao e Emocao: quando ambos os grupos estao equilibrados (diferenca < 10%)
  *
  * @param {import('./analises.js').MapaCompleto} mapa - Mapa completo.
@@ -39,7 +39,7 @@ function percentualGrupo(mapaValores, grupo) {
 export function calcularRazaoEmocao(mapa) {
   const valores = tabularMapa(mapa)
   const pRazao = percentualGrupo(valores, [1, 4, 7, 8, 22])
-  const pEmocao = percentualGrupo(valores, [2, 3, 6, 9, 11])
+  const pEmocao = percentualGrupo(valores, [2, 3, 5, 6, 9, 11])
 
   let predominante
   if (Math.abs(pRazao - pEmocao) < 10) predominante = 'Razão e Emoção'

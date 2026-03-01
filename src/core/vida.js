@@ -7,6 +7,8 @@
  * e Tecnica 25 (Quintessencia / Quintuplicidade).
  */
 
+import { tabularMapa } from './analises.js'
+
 /**
  * Verifica Conquista Espontanea (Tecnica 15).
  *
@@ -190,7 +192,6 @@ export function calcularLegado(mo, cd, realizacoes) {
  * @returns {Array<{par: string, vn1: number, vn2: number}>}
  */
 export function calcularOposicoesFortes(mapa) {
-  const { tabularMapa } = require('./analises.js')
   const valores = new Set(tabularMapa(mapa))
   const resultado = []
 

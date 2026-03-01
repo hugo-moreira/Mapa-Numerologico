@@ -112,14 +112,6 @@ export function calcularPeriodosCT(diaNasc, mesNasc, anoInteresse) {
   const diaFim = diaNasc - 1 <= 0 ? 1 : diaNasc - 1
 
   for (let q = 0; q < 4; q++) {
-    // Mes de inicio do CT (1-12)
-    const mesInicioNum = ((mesNasc - 1 + q * 3) % 12) + 1
-    const anoInicio = mesInicioNum >= mesNasc || q === 0
-      ? (mesInicioNum <= mesNasc || q === 0
-        ? anoInteresse + Math.floor((mesNasc - 1 + q * 3) / 12)
-        : anoInteresse)
-      : anoInteresse + 1
-
     const mesInicioReal = ((mesNasc - 1 + q * 3) % 12) + 1
     const anoInicioReal = anoInteresse + Math.floor((mesNasc - 1 + q * 3) / 12)
 

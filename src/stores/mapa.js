@@ -14,7 +14,7 @@ import { ref } from 'vue'
 import { calcularCD } from '../core/jornada.js'
 import { calcularPersonalidade } from '../core/personalidade.js'
 import { calcularCiclos, calcularDesafios, calcularRealizacoes, calcularIdade } from '../core/jornada.js'
-import { calcularDuplicidades, calcularAusencias, calcularAVP, calcularPureza, gerarPiramide, calcularPerfilExpressao, calcularLigacoesFamiliares } from '../core/analises.js'
+import { calcularDuplicidades, calcularAusencias, calcularAVP, calcularPureza, gerarPiramide, calcularPerfilExpressao, calcularLigacoesFamiliares, tabularMapa } from '../core/analises.js'
 import { calcularRazaoEmocao, calcularComoReagem, calcularRiscos, calcularIntensidadeSexual, calcularAdequacaoLinguagem } from '../core/potenciais.js'
 import { calcularConquistaEspontanea, calcularRealizacaoEspontanea, calcularRenascimento, calcularLegado, calcularQuintessencia } from '../core/vida.js'
 import { analisarPraticaAfetiva, analisarFertilidade, gerarPedagioCósmico } from '../core/afetivo.js'
@@ -87,7 +87,12 @@ export const useMapaStore = defineStore('mapa', () => {
     const pedagio = gerarPedagioCósmico(dm)
 
     const enfermidades = calcularEnfermidades(duplicidades, mapaBase)
-    const orientacaoProfissional = calcularOrientacaoProfissional(mapaBase, pureza, 0)
+    const VNS_ESPIRITUAIS = [7, 9, 11, 22]
+    const todosValores = tabularMapa(mapaBase)
+    const percEspiritual = todosValores.length > 0
+      ? Math.round((todosValores.filter(v => VNS_ESPIRITUAIS.includes(v)).length / todosValores.length) * 100)
+      : 0
+    const orientacaoProfissional = calcularOrientacaoProfissional(mapaBase, pureza, percEspiritual)
 
     const ligacoesFamiliares = calcularLigacoesFamiliares(mapaBase)
     const frases = gerarFrases(mo, eu, ex, cd, dm)

@@ -376,8 +376,9 @@ export async function gerarRelatorioPDF(mapa, nome, diaNasc, mesNasc, anoNasc) {
 
   const realizNomes = ['R1', 'R2', 'R3', 'R4']
   for (let i = 0; i < 4; i++) {
+    const r = mapa.realizacoes?.[i]
+    if (!r) continue
     checkarPagina(14)
-    const r = mapa.realizacoes[i]
     const periodo = r.fim ? `${r.inicio} a ${r.fim} anos` : `${r.inicio}+ anos`
     const desc = DESC_VN[r.vn === 11 ? 11 : r.vn === 22 ? 22 : r.vn]
     const ehAtiva = mapa.idade >= r.inicio && (r.fim === null || mapa.idade <= r.fim)
