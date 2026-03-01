@@ -11,7 +11,111 @@
 import { reduzir, normalizarNome, ehVogal, valorLetra } from './pitagorico.js'
 
 /**
- * Tabela completa de Profissoes por VN.
+ * Lista canonica de todas as profissoes tradicionais (para exibicao ordenada).
+ * @type {string[]}
+ */
+export const LISTA_PROFISSOES = [
+  'Administração', 'Agricultura', 'Alimentação', 'Arquitetura', 'Artes',
+  'Assessor de Creators', 'Assistente Social', 'Beleza', 'Biblioteconomia',
+  'Ciências Exatas', 'Ciências Naturais', 'Ciências Sociais', 'Cientista',
+  'Coach', 'Comunicação', 'Decoração', 'Desenho', 'Digital Influencer',
+  'Diplomacia', 'Direito', 'Editor', 'Educação Física', 'Engenharia',
+  'Ensino', 'Escritor', 'Espiritualidade', 'Esportes',
+  'Especialista Emocional', 'Matemática', 'Mercado Financeiro',
+  'MKT Digital', 'MKT Relacionamento', 'Personal Organizer', 'Personal Style',
+  'Política', 'Psicologia', 'Saúde', 'Secretariado', 'Securitário',
+  'Segurança', 'Tecnologia', 'Turismo', 'Vendas', 'Veterinária',
+]
+
+/**
+ * Lista canonica de Novas Profissoes (profissoes da nova economia e era digital).
+ * @type {string[]}
+ */
+export const LISTA_NOVAS_PROFISSOES = [
+  'Analista de IA Ética',
+  'Arquiteto Sustentável / Bioarquiteto',
+  'Artista Digital / NFT Designer',
+  'Cientista de Dados',
+  'Consultor de Finanças Sustentáveis / ESG',
+  'Criador de Conteúdo / Influencer de Propósito',
+  'Criador de Escolas de Consciência',
+  'Criador de Experiências Espirituais (Retiros, Eventos)',
+  'Curador de Conteúdo Humano + IA',
+  'Designer de Ambientes Saudáveis',
+  'Designer de Experiências (UX/UI)',
+  'Educador de Inteligência Emocional',
+  'Educador para Nova Consciência',
+  'Empreendedor Digital',
+  'Engenheiro de Automação / Robótica',
+  'Engenheiro de Energia Renovável',
+  'Especialista em Diversidade e Inclusão',
+  'Especialista em IA e Dados',
+  'Fundador de Startups',
+  'Gestor de Cibersegurança',
+  'Gestor de Experiências Imersivas (AR/VR)',
+  'Gestor de Startups de Impacto',
+  'Líder de Causas Sociais Globais',
+  'Mentor de Carreira com Propósito',
+  'Pesquisador de Consciência / Neurociência',
+  'Profissional de Blockchain',
+  'Profissional de Sustentabilidade Humana',
+  'Profissional de Wellness Corporativo',
+  'Storyteller / Roteirista de IA',
+  'Terapeuta Integrativo / Holístico',
+]
+
+/**
+ * Novas Profissoes mapeadas por VN.
+ * Cada VN lista as novas profissoes alinhadas com aquela vibracao.
+ * @type {Object.<number, string[]>}
+ */
+export const NOVAS_PROFISSOES_POR_VN = {
+  1: ['Empreendedor Digital', 'Fundador de Startups', 'Gestor de Startups de Impacto',
+    'Especialista em IA e Dados', 'Profissional de Blockchain'],
+  2: ['Especialista em Diversidade e Inclusão', 'Educador de Inteligência Emocional',
+    'Curador de Conteúdo Humano + IA', 'Mentor de Carreira com Propósito',
+    'Profissional de Wellness Corporativo', 'Terapeuta Integrativo / Holístico'],
+  3: ['Artista Digital / NFT Designer', 'Criador de Conteúdo / Influencer de Propósito',
+    'Designer de Experiências (UX/UI)', 'Storyteller / Roteirista de IA'],
+  4: ['Analista de IA Ética', 'Arquiteto Sustentável / Bioarquiteto',
+    'Curador de Conteúdo Humano + IA', 'Designer de Experiências (UX/UI)',
+    'Engenheiro de Automação / Robótica', 'Engenheiro de Energia Renovável',
+    'Especialista em Diversidade e Inclusão', 'Especialista em IA e Dados',
+    'Gestor de Cibersegurança', 'Mentor de Carreira com Propósito',
+    'Profissional de Blockchain'],
+  5: ['Artista Digital / NFT Designer', 'Criador de Conteúdo / Influencer de Propósito',
+    'Empreendedor Digital', 'Gestor de Experiências Imersivas (AR/VR)',
+    'Storyteller / Roteirista de IA'],
+  6: ['Arquiteto Sustentável / Bioarquiteto', 'Consultor de Finanças Sustentáveis / ESG',
+    'Designer de Ambientes Saudáveis', 'Educador de Inteligência Emocional',
+    'Engenheiro de Energia Renovável', 'Especialista em Diversidade e Inclusão',
+    'Gestor de Startups de Impacto', 'Mentor de Carreira com Propósito',
+    'Profissional de Sustentabilidade Humana', 'Profissional de Wellness Corporativo',
+    'Terapeuta Integrativo / Holístico'],
+  7: ['Cientista de Dados', 'Criador de Escolas de Consciência',
+    'Criador de Experiências Espirituais (Retiros, Eventos)',
+    'Gestor de Experiências Imersivas (AR/VR)',
+    'Pesquisador de Consciência / Neurociência'],
+  8: ['Analista de IA Ética', 'Empreendedor Digital', 'Engenheiro de Automação / Robótica',
+    'Especialista em IA e Dados', 'Fundador de Startups',
+    'Gestor de Cibersegurança', 'Profissional de Blockchain'],
+  9: ['Consultor de Finanças Sustentáveis / ESG',
+    'Criador de Conteúdo / Influencer de Propósito',
+    'Designer de Ambientes Saudáveis', 'Educador para Nova Consciência',
+    'Gestor de Startups de Impacto', 'Líder de Causas Sociais Globais',
+    'Profissional de Sustentabilidade Humana'],
+  11: ['Criador de Escolas de Consciência',
+    'Criador de Experiências Espirituais (Retiros, Eventos)',
+    'Educador para Nova Consciência', 'Líder de Causas Sociais Globais',
+    'Pesquisador de Consciência / Neurociência'],
+  22: ['Analista de IA Ética', 'Arquiteto Sustentável / Bioarquiteto',
+    'Cientista de Dados', 'Engenheiro de Automação / Robótica',
+    'Engenheiro de Energia Renovável', 'Especialista em IA e Dados',
+    'Fundador de Startups'],
+}
+
+/**
+ * Tabela completa de Profissoes tradicionais por VN.
  * Extraida da Apostila - Orientacao Profissional do curso de formacao.
  * @type {Object.<number, string[]>}
  */
@@ -92,48 +196,55 @@ export const VNS_ESPIRITUALIDADE = [7, 9, 11, 22]
 export function calcularOrientacaoProfissional(mapa, pureza, percentualEspiritualidade) {
   const fixas = [mapa.cd, mapa.mo, mapa.dm, mapa.eu, mapa.merito, mapa.ex]
 
-  const contagem = {}
-  for (const vn of fixas) {
-    const profissoes = PROFISSOES_POR_VN[vn] || []
-    for (const prof of profissoes) {
-      contagem[prof] = (contagem[prof] || 0) + 1
+  // --- Calcula incidencias para profissoes tradicionais ---
+  function calcIncidencias(lista, tabelaPorVN, vns) {
+    const contagem = {}
+    for (const vn of vns) {
+      for (const prof of (tabelaPorVN[vn] || [])) {
+        contagem[prof] = (contagem[prof] || 0) + 1
+      }
     }
+    return lista.map(prof => ({ prof, inc: contagem[prof] || 0 }))
   }
 
-  const todasOrdenadas = Object.entries(contagem)
-    .sort(([, a], [, b]) => b - a)
+  // Passo 1: VNs fixas (cd, mo, dm, eu, merito, ex)
+  const passo1 = calcIncidencias(LISTA_PROFISSOES, PROFISSOES_POR_VN, fixas)
+  const maxP1 = Math.max(...passo1.map(p => p.inc))
 
-  const maxIncidencia = todasOrdenadas[0]?.[1] || 0
-  const empatadas = todasOrdenadas.filter(([, v]) => v === maxIncidencia).map(([p]) => p)
+  // Passo 2: Passo 1 + ciclos (c1, c2, c3) com mais vivencia
+  const ciclos = [mapa.c1, mapa.c2, mapa.c3]
+  const passo2 = calcIncidencias(LISTA_PROFISSOES, PROFISSOES_POR_VN, [...fixas, ...ciclos])
+  const maxP2 = Math.max(...passo2.map(p => p.inc))
 
-  let primeiraOpcao = []
-  let segundaOpcao = []
+  // Passo 3: Passo 2 + realizacoes
+  const realizacoes = (mapa.realizacoes || []).map(r => r.vn)
+  const passo3 = calcIncidencias(LISTA_PROFISSOES, PROFISSOES_POR_VN, [...fixas, ...ciclos, ...realizacoes])
+  const maxP3 = Math.max(...passo3.map(p => p.inc))
 
-  if (empatadas.length <= 4) {
-    primeiraOpcao = empatadas
-    segundaOpcao = todasOrdenadas
-      .filter(([p]) => !empatadas.includes(p))
-      .map(([p]) => p)
-      .slice(0, 6)
-  } else {
-    primeiraOpcao = empatadas.slice(0, 4)
-    segundaOpcao = [...empatadas.slice(4), ...todasOrdenadas
-      .filter(([p]) => !empatadas.includes(p))
-      .map(([p]) => p)].slice(0, 6)
-  }
+  // --- Calcula incidencias para novas profissoes ---
+  const novasP1 = calcIncidencias(LISTA_NOVAS_PROFISSOES, NOVAS_PROFISSOES_POR_VN, fixas)
+  const novasP2 = calcIncidencias(LISTA_NOVAS_PROFISSOES, NOVAS_PROFISSOES_POR_VN, [...fixas, ...ciclos])
+  const novasP3 = calcIncidencias(LISTA_NOVAS_PROFISSOES, NOVAS_PROFISSOES_POR_VN, [...fixas, ...ciclos, ...realizacoes])
+
+  // --- Determina primeira/segunda opcao (compatibilidade com comportamento anterior) ---
+  const todasOrdenadas = [...passo1].sort((a, b) => b.inc - a.inc)
+  const empatadas = todasOrdenadas.filter(p => p.inc === maxP1).map(p => p.prof)
+
+  let primeiraOpcao = empatadas.length <= 4 ? empatadas : empatadas.slice(0, 4)
+  let segundaOpcao = todasOrdenadas
+    .filter(p => !primeiraOpcao.includes(p.prof) && p.inc > 0)
+    .map(p => p.prof)
+    .slice(0, 6)
 
   if (pureza.temPureza && pureza.vn) {
-    const profissoesPureza = PROFISSOES_POR_VN[pureza.vn] || []
-    const primeiraFiltrada = primeiraOpcao.filter((p) => profissoesPureza.includes(p))
-    const movidas = primeiraOpcao.filter((p) => !profissoesPureza.includes(p))
-    primeiraOpcao = primeiraFiltrada.length > 0 ? primeiraFiltrada : primeiraOpcao
-    segundaOpcao = [...movidas, ...segundaOpcao].slice(0, 6)
+    const profPureza = PROFISSOES_POR_VN[pureza.vn] || []
+    const filtrada = primeiraOpcao.filter(p => profPureza.includes(p))
+    if (filtrada.length > 0) primeiraOpcao = filtrada
   }
 
   const fixasSet = new Set(fixas)
-  const temEspiritual = VNS_ESPIRITUALIDADE.some((v) => fixasSet.has(v))
+  const temEspiritual = VNS_ESPIRITUALIDADE.some(v => fixasSet.has(v))
   const profissionalEspiritualidade = temEspiritual || mapa.dm === 0 || percentualEspiritualidade > 40
-
   const temVN3Fixa = [mapa.mo, mapa.eu, mapa.cd, mapa.dm, mapa.merito].includes(3)
   const atividadeArtistica = temVN3Fixa && !primeiraOpcao.includes('Artes')
 
@@ -143,8 +254,13 @@ export function calcularOrientacaoProfissional(mapa, pureza, percentualEspiritua
     profissionalEspiritualidade,
     atividadeArtistica,
     orientacao: profissionalEspiritualidade
-      ? 'Este mapa indica vocacao para Espiritualidade. Recomenda-se combinar com outra area da 1a opcao.'
-      : 'Desenvolver somente a 1a opcao ou combinar 1a com 2a opcao.',
+      ? 'Este mapa indica vocação para Espiritualidade. Recomenda-se combinar com outra área da 1ª opção.'
+      : 'Desenvolver somente a 1ª opção ou combinar 1ª com 2ª opção.',
+    // Dados tabulares completos para exibicao
+    tabela: {
+      tradicionais: { passo1, passo2, passo3, maxP1, maxP2, maxP3 },
+      novas: { passo1: novasP1, passo2: novasP2, passo3: novasP3 },
+    },
   }
 }
 

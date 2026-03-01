@@ -14,7 +14,7 @@ import { ref } from 'vue'
 import { calcularCD } from '../core/jornada.js'
 import { calcularPersonalidade } from '../core/personalidade.js'
 import { calcularCiclos, calcularDesafios, calcularRealizacoes, calcularIdade } from '../core/jornada.js'
-import { calcularDuplicidades, calcularAusencias, calcularAVP, calcularPureza, gerarPiramide, calcularPerfilExpressao } from '../core/analises.js'
+import { calcularDuplicidades, calcularAusencias, calcularAVP, calcularPureza, gerarPiramide, calcularPerfilExpressao, calcularLigacoesFamiliares } from '../core/analises.js'
 import { calcularRazaoEmocao, calcularComoReagem, calcularRiscos, calcularIntensidadeSexual, calcularAdequacaoLinguagem } from '../core/potenciais.js'
 import { calcularConquistaEspontanea, calcularRealizacaoEspontanea, calcularRenascimento, calcularLegado, calcularQuintessencia } from '../core/vida.js'
 import { analisarPraticaAfetiva, analisarFertilidade, gerarPedagioCósmico } from '../core/afetivo.js'
@@ -89,6 +89,7 @@ export const useMapaStore = defineStore('mapa', () => {
     const enfermidades = calcularEnfermidades(duplicidades, mapaBase)
     const orientacaoProfissional = calcularOrientacaoProfissional(mapaBase, pureza, 0)
 
+    const ligacoesFamiliares = calcularLigacoesFamiliares(mapaBase)
     const frases = gerarFrases(mo, eu, ex, cd, dm)
     const multiAnoAP = calcularMultiAnoAP(diaInput, mesInput, anoInput, { ...mapaBase })
     const anosAP9 = calcularAnosAP9(diaInput, mesInput, anoInput)
@@ -119,6 +120,7 @@ export const useMapaStore = defineStore('mapa', () => {
       pedagio,
       enfermidades,
       orientacaoProfissional,
+      ligacoesFamiliares,
       frases,
       multiAnoAP,
       anosAP9,

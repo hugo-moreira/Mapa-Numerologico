@@ -473,7 +473,137 @@
         </div>
 
       </div>
+      <!-- === LIGAÇÕES FAMILIARES === -->
+      <div class="secao-ligacoes">
+        <table class="tabela-ligacoes">
+          <thead>
+            <tr>
+              <th colspan="4" class="lig-titulo">Ligações Familiares</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="row in m.ligacoesFamiliares" :key="row.posicao">
+              <td class="lig-pos">{{ row.posicao }}</td>
+              <td class="lig-vn">{{ String(row.vn).padStart(2,'0') }}</td>
+              <td class="lig-desc">{{ row.descricao || '-' }}</td>
+              <td class="lig-familiar">{{ row.familiar || '-' }}</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="profissional-espiritualidade">
+          Profissional de Espiritualidade:
+          <span :class="['esp-badge', m.orientacaoProfissional?.profissionalEspiritualidade ? 'esp-sim' : 'esp-nao']">
+            {{ m.orientacaoProfissional?.profissionalEspiritualidade ? 'Sim' : 'Não' }}
+          </span>
+        </div>
+      </div>
+
     </div><!-- fim folha 3 -->
+
+    <!-- ============================================================
+         FOLHA 4 — Orientação Profissional (Tradicionais + Novas)
+    ============================================================ -->
+    <div class="folha folha-quebra" v-if="m.orientacaoProfissional?.tabela">
+
+      <!-- Profissões Tradicionais -->
+      <div class="secao-prof">
+        <div class="prof-passos">
+
+          <!-- Passo 1 -->
+          <div class="passo-col">
+            <div class="passo-header">
+              <span class="passo-titulo">Profissões</span>
+              <span class="passo-inc-titulo">Passo 1<br><small>Incidências</small></span>
+            </div>
+            <div v-for="item in m.orientacaoProfissional.tabela.tradicionais.passo1"
+                 :key="item.prof"
+                 :class="['prof-linha', item.inc >= m.orientacaoProfissional.tabela.tradicionais.maxP1 && item.inc > 0 ? 'prof-destaque' : '']">
+              <span class="prof-nome">{{ item.prof }}</span>
+              <span class="prof-inc">{{ item.inc > 0 ? item.inc : '' }}</span>
+            </div>
+            <div class="passo-footer">Passo 1</div>
+          </div>
+
+          <!-- Passo 2 -->
+          <div class="passo-col">
+            <div class="passo-header">
+              <span class="passo-titulo">Profissões</span>
+              <span class="passo-inc-titulo">Passo 2<br><small>Incid.</small></span>
+            </div>
+            <div v-for="item in m.orientacaoProfissional.tabela.tradicionais.passo2"
+                 :key="item.prof"
+                 :class="['prof-linha', item.inc >= m.orientacaoProfissional.tabela.tradicionais.maxP2 && item.inc > 0 ? 'prof-destaque' : '']">
+              <span class="prof-nome">{{ item.prof }}</span>
+              <span class="prof-inc">{{ item.inc > 0 ? item.inc : '' }}</span>
+            </div>
+            <div class="passo-footer">Passo 2</div>
+          </div>
+
+          <!-- Passo 3 -->
+          <div class="passo-col">
+            <div class="passo-header">
+              <span class="passo-titulo">Profissões</span>
+              <span class="passo-inc-titulo">Passo 3<br><small>Incid.</small></span>
+            </div>
+            <div v-for="item in m.orientacaoProfissional.tabela.tradicionais.passo3"
+                 :key="item.prof"
+                 :class="['prof-linha', item.inc >= m.orientacaoProfissional.tabela.tradicionais.maxP3 && item.inc > 0 ? 'prof-destaque' : '']">
+              <span class="prof-nome">{{ item.prof }}</span>
+              <span class="prof-inc">{{ item.inc > 0 ? item.inc : '' }}</span>
+            </div>
+            <div class="passo-footer">Passo 3</div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Novas Profissões -->
+      <div class="secao-prof">
+        <div class="prof-passos">
+
+          <div class="passo-col">
+            <div class="passo-header">
+              <span class="passo-titulo">Novas Profissões</span>
+              <span class="passo-inc-titulo">Passo 1<br><small>Incidências</small></span>
+            </div>
+            <div v-for="item in m.orientacaoProfissional.tabela.novas.passo1"
+                 :key="item.prof"
+                 class="prof-linha">
+              <span class="prof-nome">{{ item.prof }}</span>
+              <span class="prof-inc">{{ item.inc > 0 ? item.inc : '' }}</span>
+            </div>
+          </div>
+
+          <div class="passo-col">
+            <div class="passo-header">
+              <span class="passo-titulo">Novas Profissões</span>
+              <span class="passo-inc-titulo">Passo 2<br><small>Incid.</small></span>
+            </div>
+            <div v-for="item in m.orientacaoProfissional.tabela.novas.passo2"
+                 :key="item.prof"
+                 class="prof-linha">
+              <span class="prof-nome">{{ item.prof }}</span>
+              <span class="prof-inc">{{ item.inc > 0 ? item.inc : '' }}</span>
+            </div>
+          </div>
+
+          <div class="passo-col">
+            <div class="passo-header">
+              <span class="passo-titulo">Novas Profissões</span>
+              <span class="passo-inc-titulo">Passo 3<br><small>Incid.</small></span>
+            </div>
+            <div v-for="item in m.orientacaoProfissional.tabela.novas.passo3"
+                 :key="item.prof"
+                 class="prof-linha">
+              <span class="prof-nome">{{ item.prof }}</span>
+              <span class="prof-inc">{{ item.inc > 0 ? item.inc : '' }}</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div><!-- fim folha 4 -->
 
   </div>
 </template>
@@ -1261,6 +1391,168 @@ function imprimir() {
 .ano-vertical {
   transform: rotate(180deg);
   font-weight: bold;
+}
+
+/* ============================================================
+   LIGAÇÕES FAMILIARES
+============================================================ */
+.secao-ligacoes {
+  border-top: 1px solid #ccc;
+  padding: 8px 16px;
+  display: flex;
+  align-items: flex-start;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.tabela-ligacoes {
+  border-collapse: collapse;
+  font-size: 11px;
+  flex: 1;
+}
+
+.lig-titulo {
+  background: white;
+  text-align: center;
+  font-weight: bold;
+  font-size: 11px;
+  padding: 2px 8px;
+  border: 1px solid #999;
+}
+
+.tabela-ligacoes td {
+  padding: 2px 6px;
+  border: none;
+  font-size: 11px;
+  color: #222;
+}
+
+.lig-pos {
+  font-weight: bold;
+  width: 28px;
+}
+
+.lig-vn {
+  width: 24px;
+}
+
+.lig-desc {
+  min-width: 180px;
+  color: #444;
+}
+
+.lig-familiar {
+  color: #333;
+  font-style: italic;
+}
+
+.profissional-espiritualidade {
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  align-self: flex-end;
+  padding-bottom: 8px;
+}
+
+.esp-badge {
+  padding: 1px 10px;
+  font-size: 11px;
+  font-weight: bold;
+}
+
+.esp-sim {
+  background: #c8f0a0;
+  color: #234;
+  border: 1px solid #aaa;
+}
+
+.esp-nao {
+  background: #e0e0e0;
+  color: #555;
+  border: 1px solid #aaa;
+}
+
+/* ============================================================
+   ORIENTAÇÃO PROFISSIONAL
+============================================================ */
+.secao-prof {
+  padding: 8px 8px;
+  border-top: 1px solid #ccc;
+}
+
+.prof-passos {
+  display: flex;
+  gap: 0;
+}
+
+.passo-col {
+  flex: 1;
+  border: 1px solid #ccc;
+  margin-right: -1px;
+  min-width: 0;
+}
+
+.passo-header {
+  display: flex;
+  justify-content: space-between;
+  background: #1c2a3a;
+  color: white;
+  padding: 2px 6px;
+  font-size: 10px;
+  font-weight: bold;
+}
+
+.passo-titulo {
+  font-size: 10px;
+}
+
+.passo-inc-titulo {
+  font-size: 9px;
+  text-align: right;
+}
+
+.passo-inc-titulo small {
+  font-weight: normal;
+  font-size: 8px;
+}
+
+.prof-linha {
+  display: flex;
+  justify-content: space-between;
+  padding: 1px 6px;
+  font-size: 10px;
+  border-bottom: 1px solid #f0f0f0;
+  min-height: 16px;
+}
+
+.prof-linha.prof-destaque {
+  font-weight: bold;
+  color: #000;
+}
+
+.prof-nome {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #222;
+}
+
+.prof-inc {
+  min-width: 20px;
+  text-align: right;
+  color: #333;
+  font-size: 10px;
+}
+
+.passo-footer {
+  text-align: center;
+  font-size: 10px;
+  font-weight: bold;
+  padding: 2px;
+  background: #f0f0f0;
+  border-top: 1px solid #ccc;
 }
 
 /* ============================================================

@@ -248,3 +248,99 @@ export function calcularPureza(mapa) {
 
   return { temPureza: false, vn: null, tipo: null }
 }
+
+/**
+ * Membro familiar associado a cada VN (1-9, 11, 22).
+ *
+ * Define qual figura familiar e representada por cada vibracao numerica
+ * no contexto da Tecnica 3 - Figuras / Ligacoes Familiares.
+ *
+ * @type {Object.<number, string>}
+ */
+const FAMILIAR_POR_VN = {
+  1: 'pai',
+  2: 'mãe',
+  3: 'irmão / irmã',
+  4: 'avós',
+  5: '',
+  6: 'cônjuge / companheiro(a)',
+  7: 'avô paterno / mestre',
+  8: 'chefe / liderança',
+  9: '',
+  11: 'mãe',
+  22: 'pai',
+}
+
+/**
+ * Descricao do tipo de ligacao por posicao no mapa.
+ *
+ * Cada posicao do mapa cria um tipo especifico de vinculo com o familiar
+ * indicado pelo seu VN. Posicoes sem descricao especifica retornam string vazia.
+ *
+ * @type {Object.<string, string>}
+ */
+const DESCRICAO_POR_POSICAO = {
+  mo: 'Igualdade',
+  eu: '',
+  ex: 'Expressão',
+  cd: 'Aproximação',
+  merito: 'Conquista',
+  tributo: 'Homenagem',
+  c1: '',
+  c2: '',
+  c3: '',
+  d1: 'Aprendizado de Relacionamento',
+  d2: 'Aprendizado de Relacionamento',
+  dm: 'Aprendizado de Relacionamento',
+  r1: '',
+  r2: '',
+  r3: '',
+  r4: '',
+}
+
+/**
+ * Calcula as Ligacoes Familiares do mapa (Tecnica 3).
+ *
+ * Para cada posicao relevante do mapa (MO, EU, CD, C1, R1, DM, D1),
+ * identifica qual membro familiar e representado pelo VN daquela posicao
+ * e qual tipo de ligacao esse posicionamento cria.
+ *
+ * Regra de mapeamento:
+ * - O MEMBRO FAMILIAR e determinado pelo valor numerico do VN da posicao.
+ * - O TIPO DE LIGACAO e determinado pela natureza da posicao no mapa
+ *   (ex: MO = "Igualdade", CD = "Aproximacao", DM = "Aprendizado de Relacionamento").
+ * - Posicoes sem descricao especifica mostram "-".
+ *
+ * @param {MapaCompleto} mapa - Mapa numerologico completo.
+ * @returns {Array<{posicao: string, vn: number, descricao: string, familiar: string}>}
+ * Array de 7 entradas, uma por posicao relevante, com a posicao, o VN,
+ * a descricao do tipo de ligacao e o familiar associado.
+ *
+ * @example
+ * // Symone (MO=11, EU=6, CD=2, C1=9, R1=5, DM=1, D1=4):
+ * // MO | 02 | Igualdade | mae
+ * // EU | 06 | -         | -
+ * // CD | 02 | Aproximacao | mae
+ * // C1 | 09 | -         | -
+ * // R1 | 05 | -         | -
+ * // DM | 01 | Aprendizado de Relacionamento | pai
+ * // D1 | 04 | Aprendizado de Relacionamento | avos
+ */
+export function calcularLigacoesFamiliares(mapa) {
+  const posicoes = [
+    { key: 'mo',  label: 'MO', vn: mapa.mo },
+    { key: 'eu',  label: 'EU', vn: mapa.eu },
+    { key: 'cd',  label: 'CD', vn: mapa.cd },
+    { key: 'c1',  label: 'C1', vn: mapa.c1 },
+    { key: 'r1',  label: 'R1', vn: mapa.realizacoes[0]?.vn },
+    { key: 'dm',  label: 'DM', vn: mapa.dm },
+    { key: 'd1',  label: 'D1', vn: mapa.d1 },
+  ]
+
+  return posicoes.map(({ key, label, vn }) => {
+    const vnBase = vn === 11 ? 11 : vn === 22 ? 22 : vn
+    const descricao = DESCRICAO_POR_POSICAO[key] || ''
+    const familiar = (vn && FAMILIAR_POR_VN[vnBase]) ? FAMILIAR_POR_VN[vnBase] : ''
+    return { posicao: label, vn: vn ?? 0, descricao, familiar }
+  })
+}
