@@ -1,0 +1,28 @@
+{
+  "name": "Mapa Numerológico Pitagórico",
+  "short_name": "Mapa Numérológico",
+  "description": "Sistema profissional de cálculo do Mapa Numerológico Pitagórico com 33 técnicas.",
+  "start_url": "/Mapa-Numerologico/",
+  "scope": "/Mapa-Numerologico/",
+  "display": "standalone",
+  "background_color": "#fafaf9",
+  "theme_color": "#292524",
+  "orientation": "portrait-primary",
+  "lang": "pt-BR",
+  "icons": [
+    {
+      "src": "icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["productivity", "utilities"],
+  "screenshots": []
+}
