@@ -665,16 +665,12 @@ function ehMestre(vn) {
   return vn === 11 || vn === 22
 }
 
-// Retorna classe de cor para box baseado em duplicidades
+// Posicoes fixas que sempre recebem cor laranja
+const POSICOES_FIXAS_LARANJA = new Set(['mo', 'eu', 'ex', 'cd', 'merito'])
+
+// Retorna classe de cor para box: laranja apenas para as 5 posicoes fixas
 function corBox(vn, posicao) {
-  if (!m.value?.duplicidades) return ''
-  const base = vn === 11 ? 2 : vn === 22 ? 4 : vn
-  const dup = m.value.duplicidades.find(d => {
-    const db = d.vn === 11 ? 2 : d.vn === 22 ? 4 : d.vn
-    return db === base
-  })
-  if (dup) return 'destaque'
-  return ''
+  return POSICOES_FIXAS_LARANJA.has(posicao) ? 'destaque' : ''
 }
 
 // Verifica se a realizacao está ativa na idade atual

@@ -184,8 +184,17 @@ function realizacaoAtiva(idade, realizacoes) {
  */
 export function calcularMultiAnoAP(diaNasc, mesNasc, anoNasc, mapaBase) {
   const hoje = new Date()
-  const anoAtual = hoje.getFullYear()
-  const anos = [anoAtual - 1, anoAtual, anoAtual + 1]
+  const anoCalendario = hoje.getFullYear()
+  const mesHoje = hoje.getMonth() + 1
+  const diaHoje = hoje.getDate()
+
+  // O AP muda no aniversario, nao em 1/jan.
+  // Se ainda nao fez aniversario este ano, o AP vigente e o do ano anterior.
+  const jaFezAniversario =
+    mesHoje > mesNasc || (mesHoje === mesNasc && diaHoje >= diaNasc)
+  const anoAPAtual = jaFezAniversario ? anoCalendario : anoCalendario - 1
+
+  const anos = [anoAPAtual - 1, anoAPAtual, anoAPAtual + 1]
   const labels = ['PERÍODO ANTERIOR', 'PERÍODO ATUAL', 'PRÓXIMO PERÍODO']
 
   return anos.map((ano, i) => {
