@@ -132,10 +132,15 @@ export function calcularDesafios(dia, mes, ano) {
  * @param {number} mes - Mes de nascimento.
  * @param {number} ano - Ano de nascimento.
  * @param {number} cd - VN do CD (para calcular as faixas etarias).
+ * @param {{ modoCompatPdfManual?: boolean }} [opcoes]
+ * Opcoes de compatibilidade de regra. Quando `modoCompatPdfManual=true`,
+ * as realizacoes R2 e R3 usam janela de 10 anos (R2: +10, R3: +10),
+ * alinhando a leitura com mapas manuais legados.
  * @returns {Array<{vn: number, inicio: number, fim: number|null}>}
  * Array de 4 realizacoes com VN e faixa etaria.
  */
-export function calcularRealizacoes(dia, mes, ano, cd) {
+export function calcularRealizacoes(dia, mes, ano, cd, opcoes = {}) {
+  const { modoCompatPdfManual = false } = opcoes
   const somaDia = reduzir(dia)
   const somaMes = reduzir(mes)
   const somaAno = reduzir(
@@ -149,6 +154,15 @@ export function calcularRealizacoes(dia, mes, ano, cd) {
   const r2 = reduzir(somaDia + somaAno)
   const r3 = reduzir(r1 + r2)
   const r4 = reduzir(somaMes + somaAno)
+
+  if (modoCompatPdfManual) {
+    return [
+      { vn: r1, inicio: 0, fim: fimR1 },
+      { vn: r2, inicio: fimR1 + 1, fim: fimR1 + 10 },
+      { vn: r3, inicio: fimR1 + 11, fim: fimR1 + 20 },
+      { vn: r4, inicio: fimR1 + 21, fim: null },
+    ]
+  }
 
   return [
     { vn: r1, inicio: 0, fim: fimR1 },

@@ -228,9 +228,46 @@ export function calcularPerfilExpressao(ex) {
  * Verificacao secundaria inclui EX e Merito conforme a intensidade.
  *
  * @param {MapaCompleto} mapa - Mapa numerologico completo.
+ * @param {{ modoCompatPdfManual?: boolean }} [opcoes]
+ * Quando `modoCompatPdfManual=true`, a pureza e avaliada pela repeticao
+ * de uma mesma VN em todo o mapa (tabulacao completa), com minimo de 3
+ * ocorrencias, alinhando mapas manuais legados.
  * @returns {{ temPureza: boolean, vn: number|null, tipo: string|null } }
  */
-export function calcularPureza(mapa) {
+export function calcularPureza(mapa, opcoes = {}) {
+  const { modoCompatPdfManual = false } = opcoes
+  if (modoCompatPdfManual) {
+    const contagem = {}
+    for (const v of tabularMapa(mapa)) {
+      const base = v === 11 ? 2 : v === 22 ? 4 : v
+      contagem[base] = (contagem[base] || 0) + 1
+    }
+
+    const candidatos = Object.entries(contagem)
+      .filter(([, qtd]) => qtd >= 3)
+      .sort((a, b) => {
+        const qtdDiff = b[1] - a[1]
+        if (qtdDiff !== 0) return qtdDiff
+        const vnA = Number(a[0])
+        const vnB = Number(b[0])
+        const score = (vn) => {
+          let s = 0
+          if (vn === mapa.cd) s += 2
+          if (vn === mapa.dm) s += 2
+          if (vn === mapa.mo) s += 1
+          return s
+        }
+        return score(vnB) - score(vnA)
+      })
+
+    if (candidatos.length > 0) {
+      const vn = Number(candidatos[0][0])
+      const temDesafio = [mapa.d1, mapa.d2, mapa.dm].includes(vn)
+      const tipo = temDesafio ? 'PPC' : mapa.eu === vn ? 'PPI' : 'PA'
+      return { temPureza: true, vn, tipo }
+    }
+  }
+
   const fixasPrincipais = [mapa.mo, mapa.cd, mapa.dm]
   const contagem = {}
   for (const v of fixasPrincipais) {

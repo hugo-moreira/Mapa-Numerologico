@@ -65,9 +65,13 @@ export function calcularRazaoEmocao(mapa) {
  * VNs 11 e 22 contam para Espiritual E para o plano fisico correspondente.
  *
  * @param {import('./analises.js').MapaCompleto} mapa - Mapa completo.
+ * @param {{ modoCompatPdfManual?: boolean }} [opcoes]
+ * Quando `modoCompatPdfManual=true`, retorna as 3 maiores forcas do bloco
+ * (ordem decrescente), para refletir a escrita narrativa de mapas manuais.
  * @returns {{ espiritual: number, possuir: number, compartilhar: number, vivenciar: number, predominantes: string[] }}
  */
-export function calcularComoReagem(mapa) {
+export function calcularComoReagem(mapa, opcoes = {}) {
+  const { modoCompatPdfManual = false } = opcoes
   const valores = tabularMapa(mapa)
   const espiritual = percentualGrupo(valores, [7, 9, 11, 22])
 
@@ -82,12 +86,24 @@ export function calcularComoReagem(mapa) {
   const compartilhar = totalFisico === 0 ? 0 : Math.round((nCompartilhar / totalFisico) * 100)
   const vivenciar = totalFisico === 0 ? 0 : Math.round((nVivenciar / totalFisico) * 100)
 
-  const max = Math.max(espiritual, possuir, compartilhar, vivenciar)
-  const predominantes = []
-  if (espiritual === max) predominantes.push('Espiritual')
-  if (possuir === max) predominantes.push('Físico - Possuir')
-  if (compartilhar === max) predominantes.push('Físico - Compartilhar')
-  if (vivenciar === max) predominantes.push('Físico - Vivenciar')
+  let predominantes = []
+  if (modoCompatPdfManual) {
+    const ordem = [
+      { chave: 'Espiritualizar', valor: espiritual },
+      { chave: 'Possuir', valor: possuir },
+      { chave: 'Compartilhar', valor: compartilhar },
+      { chave: 'Vivenciar', valor: vivenciar },
+    ]
+      .sort((a, b) => b.valor - a.valor)
+      .slice(0, 3)
+    predominantes = ordem.map((i) => i.chave)
+  } else {
+    const max = Math.max(espiritual, possuir, compartilhar, vivenciar)
+    if (espiritual === max) predominantes.push('Espiritual')
+    if (possuir === max) predominantes.push('Físico - Possuir')
+    if (compartilhar === max) predominantes.push('Físico - Compartilhar')
+    if (vivenciar === max) predominantes.push('Físico - Vivenciar')
+  }
 
   return { espiritual, possuir, compartilhar, vivenciar, predominantes }
 }

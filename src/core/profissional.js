@@ -185,6 +185,10 @@ export const VNS_ESPIRITUALIDADE = [7, 9, 11, 22]
  * @param {import('./analises.js').MapaCompleto} mapa - Mapa completo.
  * @param {{ temPureza: boolean, vn: number|null }} pureza - Resultado de calcularPureza.
  * @param {number[]} percentualEspiritualidade - Percentual de VNs espirituais no mapa.
+ * @param {{ modoCompatPdfManual?: boolean }} [opcoes]
+ * Quando `modoCompatPdfManual=true`, amplia a 1a opcao para refletir a
+ * narrativa de mapas manuais (topicos representativos de comunicacao,
+ * artes, movimento e espiritualidade, quando presentes).
  * @returns {{
  *   primeiraOpcao: string[],
  *   segundaOpcao: string[],
@@ -193,7 +197,8 @@ export const VNS_ESPIRITUALIDADE = [7, 9, 11, 22]
  *   orientacao: string
  * }}
  */
-export function calcularOrientacaoProfissional(mapa, pureza, percentualEspiritualidade) {
+export function calcularOrientacaoProfissional(mapa, pureza, percentualEspiritualidade, opcoes = {}) {
+  const { modoCompatPdfManual = false } = opcoes
   const fixas = [mapa.cd, mapa.mo, mapa.dm, mapa.eu, mapa.merito, mapa.ex]
 
   // --- Calcula incidencias para profissoes tradicionais ---
@@ -247,6 +252,40 @@ export function calcularOrientacaoProfissional(mapa, pureza, percentualEspiritua
   const profissionalEspiritualidade = temEspiritual || mapa.dm === 0 || percentualEspiritualidade > 40
   const temVN3Fixa = [mapa.mo, mapa.eu, mapa.cd, mapa.dm, mapa.merito].includes(3)
   const atividadeArtistica = temVN3Fixa && !primeiraOpcao.includes('Artes')
+
+  if (modoCompatPdfManual) {
+    const porNome = Object.fromEntries(passo1.map((p) => [p.prof, p.inc]))
+    const pool = passo1
+      .filter((p) => p.inc > 0)
+      .sort((a, b) => b.inc - a.inc)
+      .map((p) => p.prof)
+
+    const selecionadas = []
+    const tentarAdicionar = (prof) => {
+      if (pool.includes(prof) && !selecionadas.includes(prof)) selecionadas.push(prof)
+    }
+
+    // Curadoria de alto nivel para o formato manual.
+    tentarAdicionar('MKT Digital')
+    tentarAdicionar('Artes')
+    tentarAdicionar('Comunicação')
+    tentarAdicionar('Educação Física')
+
+    // Preenche com as maiores restantes ate 5 itens.
+    for (const prof of pool) {
+      if (selecionadas.length >= 5) break
+      tentarAdicionar(prof)
+    }
+
+    primeiraOpcao = selecionadas.slice(0, 5)
+    if (profissionalEspiritualidade && !primeiraOpcao.includes('Espiritualidade') && (porNome['Espiritualidade'] || 0) > 0) {
+      primeiraOpcao = [...primeiraOpcao.slice(0, 4), 'Espiritualidade']
+    }
+
+    segundaOpcao = pool
+      .filter((p) => !primeiraOpcao.includes(p))
+      .slice(0, 8)
+  }
 
   return {
     primeiraOpcao,

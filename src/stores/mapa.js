@@ -24,6 +24,17 @@ import { gerarFrases } from '../core/frases.js'
 import { calcularMultiAnoAP, calcularAnosAP9, calcularDuplicidadesPorIdade, calcularPercentuaisPorCiclo } from '../core/timeline.js'
 
 export const useMapaStore = defineStore('mapa', () => {
+  /**
+   * Modo de compatibilidade com mapas manuais legados.
+   *
+   * Quando ativo, ajusta regras de:
+   * - Realizacoes (janelas etarias no padrao manual)
+   * - Pureza (criterio de repeticao global)
+   * - Potenciais predominantes (top 3 forcas narrativas)
+   * - Orientacao profissional (curadoria mais aderente ao formato manual)
+   */
+  const MODO_COMPAT_PDF_MANUAL = true
+
   const nome = ref('')
   const dia = ref(null)
   const mes = ref(null)
@@ -58,7 +69,9 @@ export const useMapaStore = defineStore('mapa', () => {
     const { mo, eu, ex, merito, tributo } = calcularPersonalidade(nomeCompleto, cd)
     const { c1, c2, c3 } = calcularCiclos(diaInput, mesInput, anoInput)
     const { d1, d2, dm } = calcularDesafios(diaInput, mesInput, anoInput)
-    const realizacoes = calcularRealizacoes(diaInput, mesInput, anoInput, cd)
+    const realizacoes = calcularRealizacoes(diaInput, mesInput, anoInput, cd, {
+      modoCompatPdfManual: MODO_COMPAT_PDF_MANUAL,
+    })
     const idade = calcularIdade(diaInput, mesInput, anoInput)
 
     const mapaBase = { mo, eu, ex, cd, merito, tributo, c1, c2, c3, d1, d2, dm, realizacoes }
@@ -66,12 +79,16 @@ export const useMapaStore = defineStore('mapa', () => {
     const duplicidades = calcularDuplicidades(mapaBase)
     const ausencias = calcularAusencias(mapaBase)
     const avp = calcularAVP(mapaBase)
-    const pureza = calcularPureza(mapaBase)
+    const pureza = calcularPureza(mapaBase, {
+      modoCompatPdfManual: MODO_COMPAT_PDF_MANUAL,
+    })
     const piramide = gerarPiramide(mo, cd, dm, eu)
     const expressao = calcularPerfilExpressao(ex)
 
     const razaoEmocao = calcularRazaoEmocao(mapaBase)
-    const comoReagem = calcularComoReagem(mapaBase)
+    const comoReagem = calcularComoReagem(mapaBase, {
+      modoCompatPdfManual: MODO_COMPAT_PDF_MANUAL,
+    })
     const riscos = calcularRiscos(mapaBase)
     const intensidadeSexual = calcularIntensidadeSexual(mapaBase)
     const linguagem = calcularAdequacaoLinguagem(mapaBase, duplicidades)
@@ -92,7 +109,9 @@ export const useMapaStore = defineStore('mapa', () => {
     const percEspiritual = todosValores.length > 0
       ? Math.round((todosValores.filter(v => VNS_ESPIRITUAIS.includes(v)).length / todosValores.length) * 100)
       : 0
-    const orientacaoProfissional = calcularOrientacaoProfissional(mapaBase, pureza, percEspiritual)
+    const orientacaoProfissional = calcularOrientacaoProfissional(mapaBase, pureza, percEspiritual, {
+      modoCompatPdfManual: MODO_COMPAT_PDF_MANUAL,
+    })
 
     const ligacoesFamiliares = calcularLigacoesFamiliares(mapaBase)
     const frases = gerarFrases(mo, eu, ex, cd, dm)
