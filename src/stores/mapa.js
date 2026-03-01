@@ -10,7 +10,7 @@
  */
 
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import { calcularCD } from '../core/jornada.js'
 import { calcularPersonalidade } from '../core/personalidade.js'
 import { calcularCiclos, calcularDesafios, calcularRealizacoes, calcularIdade } from '../core/jornada.js'
@@ -20,6 +20,8 @@ import { calcularConquistaEspontanea, calcularRealizacaoEspontanea, calcularRena
 import { analisarPraticaAfetiva, analisarFertilidade, gerarPedagioCósmico } from '../core/afetivo.js'
 import { calcularEnfermidades } from '../core/enfermidades.js'
 import { calcularOrientacaoProfissional } from '../core/profissional.js'
+import { gerarFrases } from '../core/frases.js'
+import { calcularMultiAnoAP, calcularAnosAP9, calcularDuplicidadesPorIdade, calcularPercentuaisPorCiclo } from '../core/timeline.js'
 
 export const useMapaStore = defineStore('mapa', () => {
   const nome = ref('')
@@ -87,6 +89,12 @@ export const useMapaStore = defineStore('mapa', () => {
     const enfermidades = calcularEnfermidades(duplicidades, mapaBase)
     const orientacaoProfissional = calcularOrientacaoProfissional(mapaBase, pureza, 0)
 
+    const frases = gerarFrases(mo, eu, ex, cd, dm)
+    const multiAnoAP = calcularMultiAnoAP(diaInput, mesInput, anoInput, { ...mapaBase })
+    const anosAP9 = calcularAnosAP9(diaInput, mesInput, anoInput)
+    const dupPorIdade = calcularDuplicidadesPorIdade(mapaBase, 0, 80)
+    const percentuaisCiclo = calcularPercentuaisPorCiclo(mapaBase)
+
     mapa.value = {
       ...mapaBase,
       idade,
@@ -111,6 +119,11 @@ export const useMapaStore = defineStore('mapa', () => {
       pedagio,
       enfermidades,
       orientacaoProfissional,
+      frases,
+      multiAnoAP,
+      anosAP9,
+      dupPorIdade,
+      percentuaisCiclo,
     }
 
     calculado.value = true
