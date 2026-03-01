@@ -103,7 +103,7 @@ export function tabularMapa(mapa) {
     mapa.realizacoes[1]?.vn,
     mapa.realizacoes[2]?.vn,
     mapa.realizacoes[3]?.vn,
-  ].filter((v) => v !== undefined && v !== null)
+  ].filter((v) => v !== undefined && v !== null && v > 0)
 }
 
 /**

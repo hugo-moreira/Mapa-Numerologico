@@ -20,8 +20,9 @@ import { tabularMapa } from './analises.js'
  */
 function percentualGrupo(mapaValores, grupo) {
   const total = mapaValores.length
+  if (total === 0) return 0
   const count = mapaValores.filter((v) => grupo.includes(v)).length
-  return Math.round((count / total) * 1000) / 10
+  return Math.round((count / total) * 100)
 }
 
 /**
@@ -38,8 +39,11 @@ function percentualGrupo(mapaValores, grupo) {
  */
 export function calcularRazaoEmocao(mapa) {
   const valores = tabularMapa(mapa)
-  const pRazao = percentualGrupo(valores, [1, 4, 7, 8, 22])
-  const pEmocao = percentualGrupo(valores, [2, 3, 5, 6, 9, 11])
+  const nRazao = valores.filter(v => [1, 4, 7, 8, 22].includes(v)).length
+  const nEmocao = valores.filter(v => [2, 3, 5, 6, 9, 11].includes(v)).length
+  const total = nRazao + nEmocao
+  const pRazao = total === 0 ? 0 : Math.round((nRazao / total) * 100)
+  const pEmocao = 100 - pRazao
 
   let predominante
   if (Math.abs(pRazao - pEmocao) < 10) predominante = 'Razão e Emoção'
@@ -66,9 +70,17 @@ export function calcularRazaoEmocao(mapa) {
 export function calcularComoReagem(mapa) {
   const valores = tabularMapa(mapa)
   const espiritual = percentualGrupo(valores, [7, 9, 11, 22])
-  const possuir = percentualGrupo(valores, [1, 4, 8])
-  const compartilhar = percentualGrupo(valores, [2, 6])
-  const vivenciar = percentualGrupo(valores, [3, 5])
+
+  // Possuir/Compartilhar/Vivenciar usam base fisica (normalizada entre os 3 grupos)
+  // para bater com a tabela de percentuais do mapa.
+  const nPossuir = valores.filter(v => [1, 4, 8].includes(v)).length
+  const nCompartilhar = valores.filter(v => [2, 6].includes(v)).length
+  const nVivenciar = valores.filter(v => [3, 5].includes(v)).length
+  const totalFisico = nPossuir + nCompartilhar + nVivenciar
+
+  const possuir = totalFisico === 0 ? 0 : Math.round((nPossuir / totalFisico) * 100)
+  const compartilhar = totalFisico === 0 ? 0 : Math.round((nCompartilhar / totalFisico) * 100)
+  const vivenciar = totalFisico === 0 ? 0 : Math.round((nVivenciar / totalFisico) * 100)
 
   const max = Math.max(espiritual, possuir, compartilhar, vivenciar)
   const predominantes = []

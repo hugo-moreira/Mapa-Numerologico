@@ -92,16 +92,16 @@
           <div class="ciclo-cell">
             <span class="periodo-texto">00 / {{ m.realizacoes[0].fim }}</span>
             <span class="seta">&gt;&gt;&gt;</span>
-            <div class="vn-box destaque">{{ fmtBase(m.c1) }}</div>
+            <div class="vn-box variavel-azul">{{ fmtBase(m.c1) }}</div>
             <div class="vn-label-sub">C<sub>1</sub></div>
           </div>
           <div class="desafio-cell">
             <span class="seta">&gt;&gt;&gt;</span>
-            <div class="vn-box destaque">{{ fmtBase(m.d1) }}</div>
+            <div class="vn-box variavel-azul">{{ fmtBase(m.d1) }}</div>
             <div class="vn-label-sub">D<sub>1</sub></div>
           </div>
           <div class="realizacao-cell">
-            <div :class="['vn-box', ehAtivo('r1') ? 'destaque' : '']">{{ fmtBase(m.realizacoes[0].vn) }}</div>
+            <div class="vn-box variavel-azul">{{ fmtBase(m.realizacoes[0].vn) }}</div>
             <div class="vn-label-sub">R<sub>1</sub></div>
             <span class="seta-esq">&lt;&lt;&lt;</span>
             <span class="periodo-texto">00 / {{ m.realizacoes[0].fim }}</span>
@@ -122,17 +122,17 @@
           <div class="ciclo-cell">
             <span class="periodo-texto">29 / 56</span>
             <span class="seta">&gt;&gt;&gt;</span>
-            <div class="vn-box destaque">{{ fmtBase(m.c2) }}</div>
+            <div class="vn-box variavel-azul">{{ fmtBase(m.c2) }}</div>
             <div class="vn-label-sub">C<sub>2</sub></div>
           </div>
           <div class="desafio-cell">
             <span class="seta">&gt;&gt;&gt;</span>
-            <div class="vn-box destaque">{{ fmtBase(m.d2) }}</div>
+            <div class="vn-box variavel-azul">{{ fmtBase(m.d2) }}</div>
             <div class="vn-label-sub">D<sub>2</sub></div>
           </div>
           <div class="realizacao-cell">
             <div v-if="ehMestre(m.realizacoes[1].vn)" class="vn-superscript">{{ m.realizacoes[1].vn }}</div>
-            <div :class="['vn-box', ehAtivo('r2') ? 'destaque' : '']">{{ fmtBase(m.realizacoes[1].vn) }}</div>
+            <div :class="['vn-box', 'variavel-azul']">{{ fmtBase(m.realizacoes[1].vn) }}</div>
             <div class="vn-label-sub">R<sub>2</sub></div>
             <span class="seta-esq">&lt;&lt;&lt;</span>
             <span class="periodo-texto">{{ m.realizacoes[1].inicio }} / {{ m.realizacoes[1].fim }}</span>
@@ -167,16 +167,16 @@
           <div class="ciclo-cell">
             <span class="periodo-texto">+ 57</span>
             <span class="seta">&gt;&gt;&gt;</span>
-            <div class="vn-box destaque">{{ fmtBase(m.c3) }}</div>
+            <div class="vn-box variavel-azul">{{ fmtBase(m.c3) }}</div>
             <div class="vn-label-sub">C<sub>3</sub></div>
           </div>
           <div class="desafio-cell">
             <span class="seta">&gt;&gt;&gt;</span>
-            <div class="vn-box dm-box">{{ fmtBase(m.dm) }}</div>
+            <div :class="['vn-box', corBox(m.dm, 'dm')]">{{ fmtBase(m.dm) }}</div>
             <div class="vn-label-sub">DM</div>
           </div>
           <div class="realizacao-cell">
-            <div :class="['vn-box', ehAtivo('r3') ? 'destaque' : '']">{{ fmtBase(m.realizacoes[2].vn) }}</div>
+            <div class="vn-box variavel-azul">{{ fmtBase(m.realizacoes[2].vn) }}</div>
             <div class="vn-label-sub">R<sub>3</sub></div>
             <span class="seta-esq">&lt;&lt;&lt;</span>
             <span class="periodo-texto">{{ m.realizacoes[2].inicio }} / {{ m.realizacoes[2].fim }}</span>
@@ -191,7 +191,7 @@
           <div class="ciclo-cell"></div>
           <div class="desafio-cell"></div>
           <div class="realizacao-cell">
-            <div :class="['vn-box', ehAtivo('r4') ? 'destaque' : '']">{{ fmtBase(m.realizacoes[3].vn) }}</div>
+            <div class="vn-box variavel-azul">{{ fmtBase(m.realizacoes[3].vn) }}</div>
             <div class="vn-label-sub">R<sub>4</sub></div>
             <span class="seta-esq">&lt;&lt;&lt;</span>
             <span class="periodo-texto">+ {{ m.realizacoes[3].inicio }}</span>
@@ -670,9 +670,9 @@ function ehMestre(vn) {
 }
 
 // Posicoes fixas que sempre recebem cor laranja
-const POSICOES_FIXAS_LARANJA = new Set(['mo', 'eu', 'ex', 'cd', 'merito'])
+const POSICOES_FIXAS_LARANJA = new Set(['mo', 'eu', 'ex', 'cd', 'merito', 'dm', 'tributo'])
 
-// Retorna classe de cor para box: laranja apenas para as 5 posicoes fixas
+// Retorna classe de cor para box: laranja apenas para as posicoes fixas
 function corBox(vn, posicao) {
   return POSICOES_FIXAS_LARANJA.has(posicao) ? 'destaque' : ''
 }
@@ -941,6 +941,12 @@ async function baixarPDF() {
   background: #d4873a;
   color: white;
   border-color: #b36820;
+}
+
+.vn-box.variavel-azul {
+  background: #1c2a3a;
+  color: white;
+  border-color: #0a1520;
 }
 
 .vn-box.destaque-preto {
