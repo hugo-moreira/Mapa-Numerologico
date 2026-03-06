@@ -39,18 +39,18 @@
 
         <!-- Pirâmide SVG -->
         <div class="cab-piramide">
-          <svg viewBox="0 0 140 110" width="140" height="110">
+          <svg viewBox="0 0 160 122" aria-label="Pirâmide do destino" class="piramide-svg">
             <!-- Linhas externas da pirâmide -->
-            <polygon points="70,5 135,90 5,90" fill="none" stroke="white" stroke-width="1.5"/>
+            <polygon points="80,12 145,98 15,98" fill="none" stroke="white" stroke-width="1.5"/>
             <!-- Linhas internas -->
-            <line x1="70" y1="5" x2="70" y2="90" stroke="white" stroke-width="1"/>
-            <line x1="37" y1="47" x2="103" y2="47" stroke="white" stroke-width="1"/>
+            <line x1="80" y1="12" x2="80" y2="98" stroke="white" stroke-width="1"/>
+            <line x1="47" y1="55" x2="113" y2="55" stroke="white" stroke-width="1"/>
             <!-- Números -->
-            <text x="70" y="2" text-anchor="middle" fill="white" font-size="10" font-weight="bold">{{ fmt(m.cd) }}</text>
-            <text x="5" y="100" text-anchor="middle" fill="white" font-size="10" font-weight="bold">{{ fmt(m.mo) }}</text>
-            <text x="135" y="100" text-anchor="middle" fill="white" font-size="10" font-weight="bold">{{ fmt(m.eu) }}</text>
-            <text x="70" y="100" text-anchor="middle" fill="white" font-size="10" font-weight="bold">{{ fmt(m.dm) }}</text>
-            <text x="70" y="60" text-anchor="middle" fill="white" font-size="11" font-weight="bold">{{ fmtSlash(m.ex) }}</text>
+            <text x="80" y="9" text-anchor="middle" fill="white" font-size="10" font-weight="bold">{{ fmt(m.cd) }}</text>
+            <text x="18" y="108" text-anchor="middle" fill="white" font-size="10" font-weight="bold">{{ fmt(m.mo) }}</text>
+            <text x="142" y="108" text-anchor="middle" fill="white" font-size="10" font-weight="bold">{{ fmt(m.eu) }}</text>
+            <text x="80" y="108" text-anchor="middle" fill="white" font-size="10" font-weight="bold">{{ fmt(m.dm) }}</text>
+            <text x="80" y="70" text-anchor="middle" fill="white" font-size="11" font-weight="bold">{{ fmtSlash(m.ex) }}</text>
           </svg>
         </div>
 
@@ -90,12 +90,13 @@
             <div class="vn-label">CD</div>
           </div>
           <div class="ciclo-cell">
-            <span class="periodo-texto">00 / {{ m.realizacoes[0].fim }}</span>
+            <span class="periodo-texto">{{ PERIODOS_CICLOS.c1 }}</span>
             <span class="seta">&gt;&gt;&gt;</span>
             <div class="vn-box variavel-azul">{{ fmtBase(m.c1) }}</div>
             <div class="vn-label-sub">C<sub>1</sub></div>
           </div>
           <div class="desafio-cell">
+            <span class="periodo-texto">{{ PERIODOS_DESAFIOS.d1 }}</span>
             <span class="seta">&gt;&gt;&gt;</span>
             <div class="vn-box variavel-azul">{{ fmtBase(m.d1) }}</div>
             <div class="vn-label-sub">D<sub>1</sub></div>
@@ -120,12 +121,13 @@
             <div class="vn-label">MÉRITO</div>
           </div>
           <div class="ciclo-cell">
-            <span class="periodo-texto">29 / 56</span>
+            <span class="periodo-texto">{{ PERIODOS_CICLOS.c2 }}</span>
             <span class="seta">&gt;&gt;&gt;</span>
             <div class="vn-box variavel-azul">{{ fmtBase(m.c2) }}</div>
             <div class="vn-label-sub">C<sub>2</sub></div>
           </div>
           <div class="desafio-cell">
+            <span class="periodo-texto">{{ PERIODOS_DESAFIOS.d2 }}</span>
             <span class="seta">&gt;&gt;&gt;</span>
             <div class="vn-box variavel-azul">{{ fmtBase(m.d2) }}</div>
             <div class="vn-label-sub">D<sub>2</sub></div>
@@ -165,12 +167,13 @@
             <div class="vn-label">TRIBUTO</div>
           </div>
           <div class="ciclo-cell">
-            <span class="periodo-texto">+ 57</span>
+            <span class="periodo-texto">{{ PERIODOS_CICLOS.c3 }}</span>
             <span class="seta">&gt;&gt;&gt;</span>
             <div class="vn-box variavel-azul">{{ fmtBase(m.c3) }}</div>
             <div class="vn-label-sub">C<sub>3</sub></div>
           </div>
           <div class="desafio-cell">
+            <span class="periodo-texto">{{ PERIODOS_DESAFIOS.dm }}</span>
             <span class="seta">&gt;&gt;&gt;</span>
             <div :class="['vn-box', corBox(m.dm, 'dm')]">{{ fmtBase(m.dm) }}</div>
             <div class="vn-label-sub">DM</div>
@@ -626,6 +629,18 @@ const offsetDup = ref(20)
 
 const m = computed(() => store.mapa)
 
+const PERIODOS_CICLOS = {
+  c1: '00 / 28',
+  c2: '29 / 56',
+  c3: '+ 57',
+}
+
+const PERIODOS_DESAFIOS = {
+  d1: '00 / 28',
+  d2: '29 / 56',
+  dm: 'vida inteira',
+}
+
 // Data de geração formatada
 const dataGerado = computed(() => {
   const agora = new Date()
@@ -775,22 +790,27 @@ async function baixarPDF() {
 .cabecalho {
   background: #1c2a3a;
   color: white;
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  padding: 6px 10px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 170px 92px;
+  align-items: center;
+  column-gap: 14px;
+  padding: 8px 10px;
 }
 
 .cab-esquerda {
-  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
 .cab-linha {
   display: flex;
   align-items: center;
-  gap: 4px;
-  margin-bottom: 2px;
+  gap: 6px;
+  margin-bottom: 3px;
   flex-wrap: wrap;
+  min-height: 22px;
 }
 
 .cab-label {
@@ -825,29 +845,54 @@ async function baixarPDF() {
   color: #111;
   padding: 1px 8px;
   flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .cab-piramide {
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 170px;
+  min-width: 170px;
+  align-self: stretch;
+  padding: 2px 0;
+}
+
+.cab-piramide svg {
+  display: block;
+  width: 160px;
+  height: auto;
+  overflow: visible;
+}
+
+.piramide-svg text {
+  font-family: Arial, sans-serif;
+  font-style: normal;
 }
 
 .cab-acoes {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  width: 92px;
+  min-width: 92px;
 }
 
 .btn-acao {
   background: #2d4a6a;
   color: white;
   border: 1px solid #4a6a8a;
-  padding: 2px 8px;
+  min-height: 24px;
+  padding: 3px 8px;
   font-size: 10px;
   cursor: pointer;
   text-decoration: none;
-  display: block;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   text-align: center;
 }
 
@@ -875,13 +920,13 @@ async function baixarPDF() {
 ============================================================ */
 .grid-numeros {
   border-top: 2px solid #ccc;
-  padding: 6px 8px;
+  padding: 8px 8px 6px;
 }
 
 .col-headers {
   display: grid;
-  grid-template-columns: 72px 72px 1fr 1fr 1fr 100px;
-  margin-bottom: 4px;
+  grid-template-columns: 72px 72px minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) 110px;
+  margin-bottom: 6px;
 }
 
 .ch-vazio {}
@@ -898,14 +943,14 @@ async function baixarPDF() {
 
 .grid-linha {
   display: grid;
-  grid-template-columns: 72px 72px 1fr 1fr 1fr 100px;
+  grid-template-columns: 72px 72px minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) 110px;
   align-items: center;
-  min-height: 54px;
+  min-height: 64px;
   border-bottom: 1px solid #eee;
 }
 
 .realizacao-espontanea-linha {
-  min-height: 20px;
+  min-height: 24px;
   border-bottom: none;
 }
 
@@ -929,12 +974,18 @@ async function baixarPDF() {
   width: 34px;
   height: 30px;
   border: 1.5px solid #333;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   font-weight: bold;
   font-size: 14px;
+  line-height: 1;
   background: white;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
+  box-sizing: border-box;
+  vertical-align: middle;
 }
 
 .vn-box.destaque {
@@ -978,6 +1029,7 @@ async function baixarPDF() {
   font-size: 9px;
   color: #444;
   line-height: 1;
+  margin-top: 1px;
 }
 
 /* Células de ciclo, desafio e realização */
@@ -986,9 +1038,11 @@ async function baixarPDF() {
 .realizacao-cell {
   display: flex;
   align-items: center;
-  gap: 3px;
-  padding: 4px 2px;
-  flex-wrap: wrap;
+  gap: 4px;
+  padding: 4px 6px;
+  flex-wrap: nowrap;
+  min-width: 0;
+  white-space: nowrap;
 }
 
 .seta {
@@ -1005,6 +1059,9 @@ async function baixarPDF() {
   font-size: 9px;
   color: #555;
   white-space: nowrap;
+  display: inline-block;
+  min-width: 42px;
+  text-align: left;
 }
 
 /* Especiais (Legado, Realização Espontânea) */
@@ -1012,6 +1069,8 @@ async function baixarPDF() {
   display: flex;
   align-items: center;
   padding: 0 4px;
+  min-width: 0;
+  justify-content: flex-start;
 }
 
 .badge-especial {
@@ -1020,6 +1079,32 @@ async function baixarPDF() {
   white-space: nowrap;
   border-top: 1px solid #333;
   padding-top: 2px;
+  display: inline-block;
+  line-height: 1.1;
+}
+
+@media (max-width: 620px) {
+  .cabecalho {
+    grid-template-columns: 1fr;
+    row-gap: 10px;
+  }
+
+  .cab-piramide,
+  .cab-acoes {
+    width: 100%;
+    min-width: 0;
+    justify-self: center;
+  }
+
+  .cab-acoes {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .col-headers,
+  .grid-linha {
+    grid-template-columns: 64px 64px minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) 92px;
+  }
 }
 
 /* ============================================================

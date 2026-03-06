@@ -312,74 +312,90 @@ export function calcularDuplicidadesPorIdade(mapaBase, idadeInicio = 0, idadeFim
 }
 
 /**
- * Calcula os percentuais Racional/Emocional, Espiritual/Fisico (Possuir,
- * Compartilhar, Vivenciar), Intensidade e Riscos para o mapa completo
- * e separados por ciclo de vida (C1, C2, C3).
+ * Calcula os percentuais no formato oficial do mapa manual.
  *
- * Os percentuais de cada par somam 100% (normalizados sobre o total de VNs
- * classificadas no par correspondente).
+ * Estrutura de blocos usada na planilha oficial:
+ * - Total: 14 posicoes (sem EX e sem Tributo)
+ * - 1º ciclo: 8 posicoes (fixas + C1 + D1 + R1)
+ * - 2º ciclo: 9 posicoes (fixas + C2 + D2 + R2 + R3)
+ * - 3º ciclo: 7 posicoes (fixas + C3 + R4)
  *
- * Classificacoes:
- * - Racional: 1, 4, 7, 8, 22 | Emocional: 2, 3, 5, 6, 9, 11
- * - Espiritual: 7, 9, 11, 22 | Fisico: 1, 2, 3, 4, 5, 6, 8
- * - Possuir (Fisico): 1, 4, 8 | Compartilhar: 2, 6 | Vivenciar: 3, 5
- * - Intensa: 1, 3, 5, 8 | Media: 2, 4, 6 | Fraca: 7, 9
- * - Agressividade: 1, 4, 7, 8 | Inseguranca: 3, 5, 9 | Dependencia: 2, 4, 6
- *
- * @param {Object} mapaBase - Objeto com todas as VNs do mapa (mo, eu, ex, cd, merito, tributo, dm, c1, c2, c3, d1, d2, realizacoes).
- * @returns {{
- *   total: PercentuaisBloco,
- *   c1: PercentuaisBloco,
- *   c2: PercentuaisBloco,
- *   c3: PercentuaisBloco
- * }}
+ * @param {Object} mapaBase - Objeto com as VNs do mapa.
+ * @returns {{ total: PercentuaisBloco, c1: PercentuaisBloco, c2: PercentuaisBloco, c3: PercentuaisBloco }}
  */
 export function calcularPercentuaisPorCiclo(mapaBase) {
-  // VNs por ciclo: estaticas + ciclo + desafio do periodo + realizacao representativa
-  function vnsParaCiclo(cicloKey, desafioKey, realizacaoVN) {
-    const estaticas = [
-      mapaBase.mo, mapaBase.eu, mapaBase.ex, mapaBase.cd,
-      mapaBase.merito, mapaBase.tributo, mapaBase.dm,
-    ]
-    const ciclo = mapaBase[cicloKey]
-    const desafio = mapaBase[desafioKey]
-    return [...estaticas, ciclo, desafio, realizacaoVN].filter(v => v > 0)
+  /**
+   * Normaliza um valor para entrada do bloco.
+   *
+   * @param {number} vn - Valor numerologico.
+   * @returns {number|null} Valor valido (>0) ou null.
+   */
+  function n(vn) {
+    if (vn === undefined || vn === null || vn <= 0) return null
+    return vn
   }
 
-  // Realizacao representativa de cada ciclo (pelo periodo de maior sobreposicao)
   const r = mapaBase.realizacoes
   const r1 = r[0]?.vn ?? 0
   const r2 = r[1]?.vn ?? 0
   const r3 = r[2]?.vn ?? 0
   const r4 = r[3]?.vn ?? 0
 
-  // C1 (0-28): ciclo c1, desafio d1, realizacao r1 (cobre 0-34 → maior parte em C1)
-  const vnsC1 = vnsParaCiclo('c1', 'd1', r1)
-  // C2 (29-56): ciclo c2, desafio d2, realizacao r2 (cobre 35-44, centro de C2)
-  const vnsC2 = vnsParaCiclo('c2', 'd2', r2)
-  // C3 (57+): ciclo c3, desafio dm, realizacao r4 (cobre 55+)
-  const vnsC3 = vnsParaCiclo('c3', 'dm', r4)
-  // Total: todas as 16 posicoes
+  const fixas = [
+    n(mapaBase.mo),
+    n(mapaBase.eu),
+    n(mapaBase.cd),
+    n(mapaBase.merito),
+    n(mapaBase.dm),
+  ].filter(Boolean)
+
   const vnsTotal = [
-    mapaBase.mo, mapaBase.eu, mapaBase.ex, mapaBase.cd,
-    mapaBase.merito, mapaBase.tributo, mapaBase.dm,
-    mapaBase.c1, mapaBase.c2, mapaBase.c3,
-    mapaBase.d1, mapaBase.d2,
-    r1, r2, r3, r4,
-  ].filter(v => v !== undefined && v !== null && v > 0)
+    ...fixas,
+    n(mapaBase.c1),
+    n(mapaBase.c2),
+    n(mapaBase.c3),
+    n(mapaBase.d1),
+    n(mapaBase.d2),
+    n(r1),
+    n(r2),
+    n(r3),
+    n(r4),
+  ].filter(Boolean)
+
+  const vnsC1 = [
+    ...fixas,
+    n(mapaBase.c1),
+    n(mapaBase.d1),
+    n(r1),
+  ].filter(Boolean)
+
+  const vnsC2 = [
+    ...fixas,
+    n(mapaBase.c2),
+    n(mapaBase.d2),
+    n(r2),
+    n(r3),
+  ].filter(Boolean)
+
+  const vnsC3 = [
+    ...fixas,
+    n(mapaBase.c3),
+    n(r4),
+  ].filter(Boolean)
 
   return {
-    total: calcularBlocoPercentual(vnsTotal),
-    c1: calcularBlocoPercentual(vnsC1),
-    c2: calcularBlocoPercentual(vnsC2),
-    c3: calcularBlocoPercentual(vnsC3),
+    total: calcularBlocoPercentual(vnsTotal, 4),
+    c1: calcularBlocoPercentual(vnsC1, 1),
+    c2: calcularBlocoPercentual(vnsC2, 2),
+    c3: calcularBlocoPercentual(vnsC3, 1),
   }
 }
 
 /**
  * Calcula todos os percentuais de um bloco de VNs.
  *
- * @param {number[]} vns - Array de VNs.
+ * @param {number[]} vns - Array de VNs do bloco oficial.
+ * @param {number} qtdRealizacoesFim - Quantas posicoes finais do bloco sao realizacoes.
  * @returns {PercentuaisBloco}
  *
  * @typedef {Object} PercentuaisBloco
@@ -395,46 +411,52 @@ export function calcularPercentuaisPorCiclo(mapaBase) {
  * @property {number} agressividade - Percentual risco agressividade (%).
  * @property {number} inseguranca - Percentual risco inseguranca (%).
  * @property {number} dependencia - Percentual risco dependencia (%).
- * @property {number} cp - Percentual CP (equivale a agressividade) (%).
- * @property {number} vg - Percentual VG (equivale a inseguranca) (%).
- * @property {number} sc - Percentual SC (equivale a dependencia) (%).
+ * @property {number} cp - Percentual CP (%).
+ * @property {number} vg - Percentual VG (%).
+ * @property {number} sc - Percentual SC (%).
  */
-function calcularBlocoPercentual(vns) {
-  function pct(grupo, base) {
-    const b = base ?? vns
-    const n = b.filter(v => grupo.includes(v)).length
-    const t = b.length
+function calcularBlocoPercentual(vns, qtdRealizacoesFim = 0) {
+  /**
+   * Percentual bruto de um grupo sobre o tamanho do bloco.
+   *
+   * @param {number[]} grupo - Lista de VNs.
+   * @returns {number} Percentual arredondado.
+   */
+  function pct(grupo) {
+    const n = vns.filter(v => grupo.includes(v)).length
+    const t = vns.length
     return t === 0 ? 0 : Math.round((n / t) * 100)
   }
 
+  /**
+   * Percentual de dois grupos normalizados para fechar 100%.
+   *
+   * @param {number[]} grupoA - Grupo A.
+   * @param {number[]} grupoB - Grupo B.
+   * @returns {{ a: number, b: number }} Percentuais normalizados.
+   */
   function pctNormalizado(grupoA, grupoB) {
     const nA = vns.filter(v => grupoA.includes(v)).length
     const nB = vns.filter(v => grupoB.includes(v)).length
     const total = nA + nB
     if (total === 0) return { a: 0, b: 0 }
-    const pA = Math.round((nA / total) * 100)
-    return { a: pA, b: 100 - pA }
+    return {
+      a: Math.round((nA / total) * 100),
+      b: Math.round((nB / total) * 100),
+    }
   }
 
   const re = pctNormalizado([1, 4, 7, 8, 22], [2, 3, 5, 6, 9, 11])
-  const ef = pctNormalizado([7, 9, 11, 22], [1, 2, 3, 4, 5, 6, 8])
-  const pcv = (() => {
-    const possuir = vns.filter(v => [1, 4, 8].includes(v)).length
-    const comp = vns.filter(v => [2, 6].includes(v)).length
-    const viv = vns.filter(v => [3, 5].includes(v)).length
-    const total = possuir + comp + viv
-    if (total === 0) return { possuir: 0, compartilhar: 0, vivenciar: 0 }
-    return {
-      possuir: Math.round((possuir / total) * 100),
-      compartilhar: Math.round((comp / total) * 100),
-      vivenciar: Math.round((viv / total) * 100),
-    }
-  })()
+  const espiritual = pct([7, 9, 11, 22])
+  const possuir = pct([1, 4, 8, 22])
+  const compartilhar = pct([2, 6, 11])
+  const vivenciar = pct([3, 5])
 
   const imf = (() => {
-    const i = vns.filter(v => [1, 3, 5, 8].includes(v)).length
-    const m = vns.filter(v => [2, 4, 6].includes(v)).length
-    const f = vns.filter(v => [7, 9].includes(v)).length
+    // Regra oficial da planilha: Intensa/Media/Fraca por classes fixas.
+    const i = vns.filter(v => [3, 5, 9, 11, 22].includes(v)).length
+    const m = vns.filter(v => [1, 2, 6, 7, 8].includes(v)).length
+    const f = vns.filter(v => [4].includes(v)).length
     const total = i + m + f
     if (total === 0) return { intensa: 0, media: 0, fraca: 0 }
     return {
@@ -445,35 +467,40 @@ function calcularBlocoPercentual(vns) {
   })()
 
   const riscos = (() => {
-    const ag = vns.filter(v => [1, 4, 7, 8].includes(v)).length
-    const ins = vns.filter(v => [3, 5, 9].includes(v)).length
-    const dep = vns.filter(v => [2, 4, 6].includes(v)).length
-    const total = ag + ins + dep
-    if (total === 0) return { agressividade: 0, inseguranca: 0, dependencia: 0 }
-    const pAg = Math.round((ag / total) * 100)
-    const pIns = Math.round((ins / total) * 100)
+    // Riscos no formato oficial: mestres sao reduzidos somente nas realizacoes.
+    const idxIniRealizacoes = Math.max(0, vns.length - qtdRealizacoesFim)
+    const reduzidos = vns.map((v, idx) => {
+      if (idx < idxIniRealizacoes) return v
+      return v === 11 ? 2 : v === 22 ? 4 : v
+    })
+    const total = reduzidos.length
+    if (total === 0) return { agressividade: 0, inseguranca: 0, dependencia: 0, cp: 0 }
+    const ag = reduzidos.filter(v => [1, 4, 7, 8].includes(v)).length
+    const ins = reduzidos.filter(v => [3, 5, 9].includes(v)).length
+    const dep = reduzidos.filter(v => [2, 4, 6].includes(v)).length
     return {
-      agressividade: pAg,
-      inseguranca: pIns,
-      dependencia: 100 - pAg - pIns,
+      agressividade: Math.round((ag / total) * 100),
+      inseguranca: Math.round((ins / total) * 100),
+      dependencia: Math.round((dep / total) * 100),
+      cp: Math.round(((ag + dep) / total) * 100),
     }
   })()
 
   return {
     razao: re.a,
     emocao: re.b,
-    espiritual: ef.a,
-    fisico: ef.b,
-    possuir: pcv.possuir,
-    compartilhar: pcv.compartilhar,
-    vivenciar: pcv.vivenciar,
+    espiritual,
+    fisico: Math.max(0, 100 - espiritual),
+    possuir,
+    compartilhar,
+    vivenciar,
     intensa: imf.intensa,
     media: imf.media,
     fraca: imf.fraca,
     agressividade: riscos.agressividade,
     inseguranca: riscos.inseguranca,
     dependencia: riscos.dependencia,
-    cp: riscos.agressividade,
+    cp: riscos.cp,
     vg: riscos.inseguranca,
     sc: riscos.dependencia,
   }
