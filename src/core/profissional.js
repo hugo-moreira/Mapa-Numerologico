@@ -4,7 +4,7 @@
  * Tecnica 31 (Nome Profissional/Assinatura) e Tecnica 32 (Numero do Imovel).
  *
  * A Orientacao Profissional identifica as areas de atuacao mais alinhadas
- * com o proposito do mapa, cruzando CD, MO, DM, EU, Merito e EX com a
+ * com o proposito do mapa, cruzando CD, MO, DM, EU e Merito com a
  * tabela de 22 areas profissionais x 12 VNs.
  */
 
@@ -199,12 +199,15 @@ export const VNS_ESPIRITUALIDADE = [7, 9, 11, 22]
  */
 export function calcularOrientacaoProfissional(mapa, pureza, percentualEspiritualidade, opcoes = {}) {
   const { modoCompatPdfManual = false } = opcoes
-  const fixas = [mapa.cd, mapa.mo, mapa.dm, mapa.eu, mapa.merito, mapa.ex]
+  // Regra oficial do mapa manual: EX nao entra na base fixa da tecnica 33.
+  const fixas = [mapa.cd, mapa.mo, mapa.dm, mapa.eu, mapa.merito]
 
   // --- Calcula incidencias para profissoes tradicionais ---
   function calcIncidencias(lista, tabelaPorVN, vns) {
+    // Regra oficial: cada VN conta no maximo 1 vez por passo.
+    const vnsUnicas = [...new Set(vns.filter(vn => vn !== undefined && vn !== null))]
     const contagem = {}
-    for (const vn of vns) {
+    for (const vn of vnsUnicas) {
       for (const prof of (tabelaPorVN[vn] || [])) {
         contagem[prof] = (contagem[prof] || 0) + 1
       }
@@ -221,15 +224,30 @@ export function calcularOrientacaoProfissional(mapa, pureza, percentualEspiritua
   const passo2 = calcIncidencias(LISTA_PROFISSOES, PROFISSOES_POR_VN, [...fixas, ...ciclos])
   const maxP2 = Math.max(...passo2.map(p => p.inc))
 
-  // Passo 3: Passo 2 + realizacoes
-  const realizacoes = (mapa.realizacoes || []).map(r => r.vn)
-  const passo3 = calcIncidencias(LISTA_PROFISSOES, PROFISSOES_POR_VN, [...fixas, ...ciclos, ...realizacoes])
+  // Passo 3: Passo 2 + realizacao ativa (na idade atual).
+  // Quando idade nao e informada, usa a primeira realizacao valida.
+  const idadeAtual = Number.isFinite(mapa.idade) ? mapa.idade : null
+  const realizacaoAtiva = (mapa.realizacoes || []).find((r, idx) => {
+    if (!r) return false
+    if (idadeAtual === null) return idx === 0
+    if (r.fim === null) return idadeAtual >= r.inicio
+    return idadeAtual >= r.inicio && idadeAtual <= r.fim
+  })?.vn
+  const passo3 = calcIncidencias(
+    LISTA_PROFISSOES,
+    PROFISSOES_POR_VN,
+    [...fixas, ...ciclos, realizacaoAtiva].filter(v => v !== undefined && v !== null)
+  )
   const maxP3 = Math.max(...passo3.map(p => p.inc))
 
   // --- Calcula incidencias para novas profissoes ---
   const novasP1 = calcIncidencias(LISTA_NOVAS_PROFISSOES, NOVAS_PROFISSOES_POR_VN, fixas)
   const novasP2 = calcIncidencias(LISTA_NOVAS_PROFISSOES, NOVAS_PROFISSOES_POR_VN, [...fixas, ...ciclos])
-  const novasP3 = calcIncidencias(LISTA_NOVAS_PROFISSOES, NOVAS_PROFISSOES_POR_VN, [...fixas, ...ciclos, ...realizacoes])
+  const novasP3 = calcIncidencias(
+    LISTA_NOVAS_PROFISSOES,
+    NOVAS_PROFISSOES_POR_VN,
+    [...fixas, ...ciclos, realizacaoAtiva].filter(v => v !== undefined && v !== null)
+  )
 
   // --- Determina primeira/segunda opcao (compatibilidade com comportamento anterior) ---
   const todasOrdenadas = [...passo1].sort((a, b) => b.inc - a.inc)

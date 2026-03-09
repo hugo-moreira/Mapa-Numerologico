@@ -109,7 +109,7 @@ export const useMapaStore = defineStore('mapa', () => {
     const percEspiritual = todosValores.length > 0
       ? Math.round((todosValores.filter(v => VNS_ESPIRITUAIS.includes(v)).length / todosValores.length) * 100)
       : 0
-    const orientacaoProfissional = calcularOrientacaoProfissional(mapaBase, pureza, percEspiritual, {
+    const orientacaoProfissional = calcularOrientacaoProfissional({ ...mapaBase, idade }, pureza, percEspiritual, {
       modoCompatPdfManual: MODO_COMPAT_PDF_MANUAL,
     })
 
