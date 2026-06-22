@@ -139,39 +139,35 @@ export function calcularRenascimento(realizacoes) {
 /**
  * Verifica Legado (Tecnica 23).
  *
- * O Legado ocorre quando MO ou CD e igual a uma Realizacao. Representa uma
- * contribuicao inovadora na area profissional que sera utilizada por outras
- * pessoas mesmo apos ser entregue.
+ * O Legado ocorre quando MO ou CD e igual ao VN da R4 (Quarta Realizacao,
+ * a realizacao final sem data de termino). Representa uma contribuicao
+ * inovadora na area profissional que sera utilizada por outras pessoas
+ * mesmo apos ser entregue. So e verificado na R4 porque o Legado e um
+ * conceito de permanencia vitalicia — realizacoes com periodo finito (R1,
+ * R2, R3) nao geram Legado.
  *
- * A pessoa tem 9 anos para desenvolver, entregar e ser reconhecida.
- * Inicia na entrada da Realizacao (exceto R1 que inicia aos 14 anos).
+ * A pessoa tem 9 anos para desenvolver, entregar e ser reconhecida,
+ * a partir da entrada na R4.
  *
  * @param {number} mo - VN do MO.
  * @param {number} cd - VN do CD.
  * @param {Array<{vn: number, inicio: number, fim: number|null}>} realizacoes
- * @returns {Array<{tipo: string, vn: number, realizacao: string, idadeInicio: number, idadeFim: number|null}>}
+ * @returns {Array<{tipo: string, vn: number, realizacao: string, idadeInicio: number, idadeFim: null}>}
  */
 export function calcularLegado(mo, cd, realizacoes) {
-  const nomesRealizacoes = ['R1', 'R2', 'R3', 'R4']
-  const resultado = []
+  const r4 = realizacoes[3]
+  if (!r4) return []
 
-  for (let i = 0; i < realizacoes.length; i++) {
-    const r = realizacoes[i]
-    const tipo = r.vn === mo ? 'MO' : r.vn === cd ? 'CD' : null
-    if (!tipo) continue
+  const tipo = r4.vn === mo ? 'MO' : r4.vn === cd ? 'CD' : null
+  if (!tipo) return []
 
-    const idadeInicio = i === 0 ? 14 : r.inicio
-
-    resultado.push({
-      tipo,
-      vn: r.vn,
-      realizacao: nomesRealizacoes[i],
-      idadeInicio,
-      idadeFim: r.fim,
-    })
-  }
-
-  return resultado
+  return [{
+    tipo,
+    vn: r4.vn,
+    realizacao: 'R4',
+    idadeInicio: r4.inicio,
+    idadeFim: r4.fim,
+  }]
 }
 
 /**

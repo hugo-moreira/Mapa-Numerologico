@@ -38,6 +38,12 @@ const routes = [
     component: () => import('../views/Historico.vue'),
     meta: { title: 'Histórico de Clientes' },
   },
+  {
+    path: '/jornada',
+    name: 'JornadaVida',
+    component: () => import('../views/JornadaVida.vue'),
+    meta: { title: 'Jornada de Vida' },
+  },
 ]
 
 const router = createRouter({

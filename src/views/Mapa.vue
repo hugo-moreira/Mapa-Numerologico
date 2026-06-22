@@ -1,615 +1,331 @@
 <template>
-  <div v-if="!store.calculado" class="flex items-center justify-center min-h-screen bg-stone-100">
-    <p class="text-stone-500">
-      Nenhum mapa calculado.
-      <router-link to="/" class="underline">Voltar</router-link>
-    </p>
+  <div v-if="!store.calculado" class="vazio">
+    <p>Nenhum mapa calculado. <router-link to="/" class="link-gold">Calcular agora</router-link></p>
   </div>
 
-  <div v-else class="mapa-wrapper" ref="mapaRef">
-    <!-- ============================================================
-         FOLHA 1 — Cabeçalho + Grid de números + Frases
-    ============================================================ -->
-    <div class="folha">
+  <div v-else class="mapa-page" ref="mapaRef">
 
-      <!-- === CABEÇALHO ESCURO === -->
-      <div class="cabecalho">
-        <div class="cab-esquerda">
-          <div class="cab-linha">
-            <span class="cab-label">nome:</span>
-            <span class="cab-valor nome-valor">{{ store.nome }}</span>
-          </div>
-          <div class="cab-linha">
-            <span class="cab-label">dia:</span>
-            <span class="cab-campo">{{ store.dia }}</span>
-            <span class="cab-label ml">mês:</span>
-            <span class="cab-campo">{{ store.mes }}</span>
-            <span class="cab-label ml">ano:</span>
-            <span class="cab-campo">{{ store.ano }}</span>
-          </div>
-          <div class="cab-linha">
-            <span class="cab-label">idade:</span>
-            <span class="cab-campo">{{ m.idade }}</span>
-            <span class="cab-label ml">excel:</span>
-            <span class="cab-campo">Brasil</span>
-            <span class="cab-label ml">gerado em:</span>
-            <span class="cab-valor">{{ dataGerado }}</span>
-          </div>
+    <!-- ── CABEÇALHO DO CLIENTE ── -->
+    <div class="mapa-cabecalho card mb">
+      <div class="cab-info">
+        <h2>{{ store.nome }}</h2>
+        <p>{{ store.dia }} / {{ store.mes }} / {{ store.ano }} · {{ m.idade }} anos</p>
+      </div>
+
+      <!-- Pirâmide SVG -->
+      <div class="cab-piramide">
+        <svg viewBox="0 0 160 122" width="140" height="107" aria-label="Pirâmide do destino">
+          <polygon points="80,10 148,100 12,100" fill="none" stroke="#c9a227" stroke-width="1.5"/>
+          <line x1="80" y1="10" x2="80" y2="100" stroke="#c9a22750" stroke-width="1"/>
+          <line x1="46" y1="55" x2="114" y2="55" stroke="#c9a22750" stroke-width="1"/>
+          <text x="80" y="7" text-anchor="middle" fill="#c9a227" font-size="10" font-weight="700">{{ fmtSlash(m.cd) }}</text>
+          <text x="14" y="112" text-anchor="middle" fill="#c9a227" font-size="9" font-weight="600">{{ fmtSlash(m.mo) }}</text>
+          <text x="146" y="112" text-anchor="middle" fill="#c9a227" font-size="9" font-weight="600">{{ fmtSlash(m.eu) }}</text>
+          <text x="80" y="112" text-anchor="middle" fill="#8899aa" font-size="9">{{ fmtBase(m.dm) }}</text>
+          <text x="80" y="72" text-anchor="middle" fill="#c9a227" font-size="11" font-weight="700">{{ fmtSlash(m.ex) }}</text>
+        </svg>
+      </div>
+
+      <div class="cab-acoes">
+        <button @click="salvar" class="btn-sm">Salvar Ficha</button>
+        <router-link to="/previsao" class="btn-sm">Previsão Anual</router-link>
+        <button @click="imprimir" class="btn-sm">Imprimir</button>
+        <button @click="baixarPDF" :disabled="gerandoPDF" class="btn-sm btn-gold">
+          {{ gerandoPDF ? 'Gerando...' : 'Gerar PDF' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- ── SEÇÃO: MAPA NUMEROLÓGICO ── -->
+    <p class="section-title">✦ Mapa Numerológico</p>
+    <div class="grid-principal mb">
+
+      <!-- PERSONALIDADE (MO · EU · EX) -->
+      <div class="col-nucleos card">
+        <p class="col-label">Personalidade</p>
+        <div class="nucleo-item">
+          <span class="nucleo-top">MO</span>
+          <div :class="['box-num box-gold', ehMestre(m.mo) ? 'box-mestre' : '']">{{ fmtSlash(m.mo) }}</div>
+          <span class="nucleo-bot">Alma</span>
         </div>
-
-        <!-- Pirâmide SVG -->
-        <div class="cab-piramide">
-          <svg viewBox="0 0 160 122" aria-label="Pirâmide do destino" class="piramide-svg">
-            <!-- Linhas externas da pirâmide -->
-            <polygon points="80,12 145,98 15,98" fill="none" stroke="white" stroke-width="1.5"/>
-            <!-- Linhas internas -->
-            <line x1="80" y1="12" x2="80" y2="98" stroke="white" stroke-width="1"/>
-            <line x1="47" y1="55" x2="113" y2="55" stroke="white" stroke-width="1"/>
-            <!-- Números -->
-            <text x="80" y="9" text-anchor="middle" fill="white" font-size="10" font-weight="bold">{{ fmt(m.cd) }}</text>
-            <text x="18" y="108" text-anchor="middle" fill="white" font-size="10" font-weight="bold">{{ fmt(m.mo) }}</text>
-            <text x="142" y="108" text-anchor="middle" fill="white" font-size="10" font-weight="bold">{{ fmt(m.eu) }}</text>
-            <text x="80" y="108" text-anchor="middle" fill="white" font-size="10" font-weight="bold">{{ fmt(m.dm) }}</text>
-            <text x="80" y="70" text-anchor="middle" fill="white" font-size="11" font-weight="bold">{{ fmtSlash(m.ex) }}</text>
-          </svg>
+        <div class="nucleo-item">
+          <span class="nucleo-top">EU</span>
+          <div :class="['box-num box-gold', ehMestre(m.eu) ? 'box-mestre' : '']">{{ fmtSlash(m.eu) }}</div>
+          <span class="nucleo-bot">Sonho</span>
         </div>
-
-        <!-- Logo / Botões de ação -->
-        <div class="cab-acoes">
-          <button @click="salvar" class="btn-acao">Salvar</button>
-          <router-link to="/" class="btn-acao">Novo</router-link>
-          <button @click="imprimir" class="btn-acao">Imprimir</button>
-          <button @click="baixarPDF" :disabled="gerandoPDF" class="btn-acao btn-pdf">
-            {{ gerandoPDF ? 'Gerando...' : 'PDF Cliente' }}
-          </button>
+        <div class="nucleo-item">
+          <span class="nucleo-top">EX</span>
+          <div :class="['box-num box-gold', ehMestre(m.ex) ? 'box-mestre' : '']">{{ fmtSlash(m.ex) }}</div>
+          <span class="nucleo-bot">Talento</span>
         </div>
       </div>
 
-      <!-- === GRID PRINCIPAL DE NÚMEROS === -->
-      <div class="grid-numeros">
+      <!-- ALMA (CD · MÉRITO · TRIBUTO) -->
+      <div class="col-jornada card">
+        <p class="col-label">Alma</p>
+        <div class="nucleo-item">
+          <span class="nucleo-top">CD</span>
+          <div :class="['box-num box-gold', ehMestre(m.cd) ? 'box-mestre' : '']">{{ fmtSlash(m.cd) }}</div>
+          <span class="nucleo-bot">Caminho do Destino</span>
+        </div>
+        <div class="nucleo-item">
+          <span class="nucleo-top">MÉRITO</span>
+          <div :class="['box-num box-gold', ehMestre(m.merito) ? 'box-mestre' : '']">{{ fmtSlash(m.merito) }}</div>
+          <span class="nucleo-bot">Dom</span>
+        </div>
+        <div class="nucleo-item">
+          <span class="nucleo-top">TRIBUTO</span>
+          <div :class="['box-num box-gold', ehMestre(m.tributo) ? 'box-mestre' : '']">{{ fmtSlash(m.tributo) }}</div>
+          <span class="nucleo-bot">Tributo</span>
+        </div>
+      </div>
 
-        <!-- Cabeçalhos das colunas -->
-        <div class="col-headers">
-          <div class="ch-vazio"></div>
-          <div class="ch-vazio"></div>
-          <div class="ch-tag">ciclo</div>
-          <div class="ch-tag">desafio</div>
-          <div class="ch-tag">realização</div>
-          <div class="ch-vazio"></div>
+      <!-- JORNADA DE VIDA (Ciclos · Aprendizados · Realizações) -->
+      <div class="col-ciclos card">
+        <p class="col-label">Jornada de Vida</p>
+
+        <div class="ciclos-header">
+          <span></span>
+          <span>Ciclos</span>
+          <span></span>
+          <span>Aprendizados</span>
+          <span></span>
+          <span>Realizações</span>
+          <span></span>
         </div>
 
-        <!-- LINHA 1: MO | CD | C1 >>> D1 | R1 -->
-        <div class="grid-linha">
-          <div class="vn-cell">
-            <div v-if="ehMestre(m.mo)" class="vn-superscript">{{ m.mo }}</div>
-            <div :class="['vn-box', corBox(m.mo, 'mo')]">{{ fmtBase(m.mo) }}</div>
-            <div class="vn-label">MO</div>
+        <!-- Linha 1 -->
+        <div class="ciclo-row">
+          <div class="ciclo-per">00<br>28</div>
+          <div class="box-ciclo box-ciclo-c">
+            <span>{{ fmtBase(m.c1) }}</span><span class="sub-lbl">C1</span>
           </div>
-          <div class="vn-cell">
-            <div :class="['vn-box', corBox(m.cd, 'cd')]">{{ fmtBase(m.cd) }}</div>
-            <div class="vn-label">CD</div>
+          <div class="arr">›</div>
+          <div class="box-ciclo box-ciclo-d">
+            <span>{{ fmtBase(m.d1) }}</span><span class="sub-lbl">D1</span>
           </div>
-          <div class="ciclo-cell">
-            <span class="periodo-texto">{{ PERIODOS_CICLOS.c1 }}</span>
-            <span class="seta">&gt;&gt;&gt;</span>
-            <div class="vn-box variavel-azul">{{ fmtBase(m.c1) }}</div>
-            <div class="vn-label-sub">C<sub>1</sub></div>
+          <div class="arr">›</div>
+          <div :class="['box-ciclo box-ciclo-r', temLegadoEm('R1') ? 'legado-border' : '']">
+            <span :class="ehMestre(m.realizacoes[0].vn) ? 'num-mestre' : ''">{{ fmtSlash(m.realizacoes[0].vn) }}</span>
+            <span class="sub-lbl">R1</span>
           </div>
-          <div class="desafio-cell">
-            <span class="periodo-texto">{{ PERIODOS_DESAFIOS.d1 }}</span>
-            <span class="seta">&gt;&gt;&gt;</span>
-            <div class="vn-box variavel-azul">{{ fmtBase(m.d1) }}</div>
-            <div class="vn-label-sub">D<sub>1</sub></div>
-          </div>
-          <div class="realizacao-cell">
-            <div class="vn-box variavel-azul">{{ fmtBase(m.realizacoes[0].vn) }}</div>
-            <div class="vn-label-sub">R<sub>1</sub></div>
-            <span class="seta-esq">&lt;&lt;&lt;</span>
-            <span class="periodo-texto">00 / {{ m.realizacoes[0].fim }}</span>
-          </div>
-          <div class="especial-cell"></div>
-        </div>
-
-        <!-- LINHA 2: EU | MÉRITO | C2 >>> D2 | R2 (Legado) -->
-        <div class="grid-linha">
-          <div class="vn-cell">
-            <div :class="['vn-box', corBox(m.eu, 'eu')]">{{ fmtBase(m.eu) }}</div>
-            <div class="vn-label">EU</div>
-          </div>
-          <div class="vn-cell">
-            <div :class="['vn-box', corBox(m.merito, 'merito')]">{{ fmtBase(m.merito) }}</div>
-            <div class="vn-label">MÉRITO</div>
-          </div>
-          <div class="ciclo-cell">
-            <span class="periodo-texto">{{ PERIODOS_CICLOS.c2 }}</span>
-            <span class="seta">&gt;&gt;&gt;</span>
-            <div class="vn-box variavel-azul">{{ fmtBase(m.c2) }}</div>
-            <div class="vn-label-sub">C<sub>2</sub></div>
-          </div>
-          <div class="desafio-cell">
-            <span class="periodo-texto">{{ PERIODOS_DESAFIOS.d2 }}</span>
-            <span class="seta">&gt;&gt;&gt;</span>
-            <div class="vn-box variavel-azul">{{ fmtBase(m.d2) }}</div>
-            <div class="vn-label-sub">D<sub>2</sub></div>
-          </div>
-          <div class="realizacao-cell">
-            <div v-if="ehMestre(m.realizacoes[1].vn)" class="vn-superscript">{{ m.realizacoes[1].vn }}</div>
-            <div :class="['vn-box', 'variavel-azul']">{{ fmtBase(m.realizacoes[1].vn) }}</div>
-            <div class="vn-label-sub">R<sub>2</sub></div>
-            <span class="seta-esq">&lt;&lt;&lt;</span>
-            <span class="periodo-texto">{{ m.realizacoes[1].inicio }} / {{ m.realizacoes[1].fim }}</span>
-          </div>
-          <div class="especial-cell">
-            <span v-if="m.legado?.length" class="badge-especial">Legado</span>
+          <div class="ciclo-per-right">
+            <span>00 / {{ m.realizacoes[0].fim }}</span>
+            <span v-if="temLegadoEm('R1')" class="legado-badge">LEGADO</span>
           </div>
         </div>
 
-        <!-- Linha de Realização Espontânea (entre R2 e R3) -->
-        <div class="grid-linha realizacao-espontanea-linha" v-if="m.realizacaoEspontanea?.length">
-          <div class="vn-cell"></div>
-          <div class="vn-cell"></div>
-          <div class="ciclo-cell"></div>
-          <div class="desafio-cell"></div>
-          <div class="realizacao-cell"></div>
-          <div class="especial-cell">
-            <span class="badge-especial">Realização Espontânea</span>
+        <!-- Linha 2 -->
+        <div class="ciclo-row">
+          <div class="ciclo-per">29<br>56</div>
+          <div class="box-ciclo box-ciclo-c">
+            <span>{{ fmtBase(m.c2) }}</span><span class="sub-lbl">C2</span>
+          </div>
+          <div class="arr">›</div>
+          <div class="box-ciclo box-ciclo-d">
+            <span>{{ fmtBase(m.d2) }}</span><span class="sub-lbl">D2</span>
+          </div>
+          <div class="arr">›</div>
+          <div :class="['box-ciclo box-ciclo-r', temLegadoEm('R2') ? 'legado-border' : '']">
+            <span :class="ehMestre(m.realizacoes[1].vn) ? 'num-mestre' : ''">{{ fmtSlash(m.realizacoes[1].vn) }}</span>
+            <span class="sub-lbl">R2</span>
+          </div>
+          <div class="ciclo-per-right">
+            <span>{{ m.realizacoes[1].inicio }} / {{ m.realizacoes[1].fim }}</span>
+            <span v-if="temLegadoEm('R2')" class="legado-badge">LEGADO</span>
           </div>
         </div>
 
-        <!-- LINHA 3: EX | TRIBUTO | C3 >>> DM | R3 -->
-        <div class="grid-linha">
-          <div class="vn-cell">
-            <div :class="['vn-box', corBox(m.ex, 'ex')]">{{ fmtBase(m.ex) }}</div>
-            <div class="vn-label">EX</div>
+        <!-- Linha 3 -->
+        <div class="ciclo-row">
+          <div class="ciclo-per">+57</div>
+          <div class="box-ciclo box-ciclo-c">
+            <span>{{ fmtBase(m.c3) }}</span><span class="sub-lbl">C3</span>
           </div>
-          <div class="vn-cell">
-            <div :class="['vn-box', corBox(m.tributo, 'tributo')]">{{ fmtBase(m.tributo) }}</div>
-            <div class="vn-label">TRIBUTO</div>
+          <div class="arr">›</div>
+          <div class="box-ciclo box-ciclo-d">
+            <span>{{ fmtBase(m.dm) }}</span><span class="sub-lbl">DM</span>
           </div>
-          <div class="ciclo-cell">
-            <span class="periodo-texto">{{ PERIODOS_CICLOS.c3 }}</span>
-            <span class="seta">&gt;&gt;&gt;</span>
-            <div class="vn-box variavel-azul">{{ fmtBase(m.c3) }}</div>
-            <div class="vn-label-sub">C<sub>3</sub></div>
+          <div class="arr">›</div>
+          <div :class="['box-ciclo box-ciclo-r', temLegadoEm('R3') ? 'legado-border' : '']">
+            <span :class="ehMestre(m.realizacoes[2].vn) ? 'num-mestre' : ''">{{ fmtSlash(m.realizacoes[2].vn) }}</span>
+            <span class="sub-lbl">R3</span>
           </div>
-          <div class="desafio-cell">
-            <span class="periodo-texto">{{ PERIODOS_DESAFIOS.dm }}</span>
-            <span class="seta">&gt;&gt;&gt;</span>
-            <div :class="['vn-box', corBox(m.dm, 'dm')]">{{ fmtBase(m.dm) }}</div>
-            <div class="vn-label-sub">DM</div>
+          <div class="ciclo-per-right">
+            <span>{{ m.realizacoes[2].inicio }} / {{ m.realizacoes[2].fim }}</span>
+            <span v-if="temLegadoEm('R3')" class="legado-badge">LEGADO</span>
           </div>
-          <div class="realizacao-cell">
-            <div class="vn-box variavel-azul">{{ fmtBase(m.realizacoes[2].vn) }}</div>
-            <div class="vn-label-sub">R<sub>3</sub></div>
-            <span class="seta-esq">&lt;&lt;&lt;</span>
-            <span class="periodo-texto">{{ m.realizacoes[2].inicio }} / {{ m.realizacoes[2].fim }}</span>
-          </div>
-          <div class="especial-cell"></div>
         </div>
 
-        <!-- LINHA 4: R4 -->
-        <div class="grid-linha">
-          <div class="vn-cell"></div>
-          <div class="vn-cell"></div>
-          <div class="ciclo-cell"></div>
-          <div class="desafio-cell"></div>
-          <div class="realizacao-cell">
-            <div class="vn-box variavel-azul">{{ fmtBase(m.realizacoes[3].vn) }}</div>
-            <div class="vn-label-sub">R<sub>4</sub></div>
-            <span class="seta-esq">&lt;&lt;&lt;</span>
-            <span class="periodo-texto">+ {{ m.realizacoes[3].inicio }}</span>
+        <!-- Linha 4: R4 -->
+        <div class="ciclo-row">
+          <div class="ciclo-per"></div>
+          <div class="box-ciclo" style="background:transparent;border:none;"></div>
+          <div class="arr"></div>
+          <div class="box-ciclo" style="background:transparent;border:none;"></div>
+          <div class="arr"></div>
+          <div :class="['box-ciclo box-ciclo-r', temLegadoEm('R4') ? 'legado-border' : '']">
+            <span :class="ehMestre(m.realizacoes[3].vn) ? 'num-mestre' : ''">{{ fmtSlash(m.realizacoes[3].vn) }}</span>
+            <span class="sub-lbl">R4</span>
           </div>
-          <div class="especial-cell">
-            <span v-if="m.conquistaEspontanea?.length" class="badge-especial">Realização Espontânea</span>
+          <div class="ciclo-per-right">
+            <span>+ {{ m.realizacoes[3].inicio }}</span>
+            <span v-if="temLegadoEm('R4')" class="legado-badge">LEGADO</span>
+            <span v-if="m.conquistaEspontanea?.length" class="legado-badge">Realiz. Esp.</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ── FRASES ── -->
+    <p class="section-title">✦ Frases Numerológicas</p>
+    <div class="frases-grid mb">
+      <div class="frase-card card">
+        <p class="frase-lbl">Frase Curta</p>
+        <p class="frase-txt frase-curta">{{ m.frases?.fraseCurta }}</p>
+      </div>
+      <div class="frase-card card">
+        <p class="frase-lbl">Frase Expandida</p>
+        <p class="frase-txt">{{ m.frases?.fraseExpandida }}</p>
+      </div>
+    </div>
+
+    <!-- ── ORIENTAÇÃO PROFISSIONAL ── -->
+    <p class="section-title">✦ Orientação Profissional</p>
+    <div class="prof-grid mb">
+      <div class="card prof-card">
+        <p class="col-label">1ª Opção</p>
+        <div class="prof-tags">
+          <template v-if="m.orientacaoProfissional?.primeiraOpcao?.length">
+            <span v-for="p in m.orientacaoProfissional.primeiraOpcao" :key="p" class="prof-tag prof-tag-gold">{{ p }}</span>
+          </template>
+          <span v-else class="text-dim-sm">—</span>
+        </div>
+      </div>
+      <div class="card prof-card">
+        <p class="col-label">2ª Opção</p>
+        <div class="prof-tags">
+          <template v-if="m.orientacaoProfissional?.segundaOpcao?.length">
+            <span v-for="p in m.orientacaoProfissional.segundaOpcao" :key="p" class="prof-tag">{{ p }}</span>
+          </template>
+          <span v-else class="text-dim-sm">—</span>
+        </div>
+      </div>
+      <div class="card prof-card prof-obs">
+        <p class="col-label">Orientação</p>
+        <p class="prof-orientacao">{{ m.orientacaoProfissional?.orientacao || '—' }}</p>
+        <div class="prof-flags">
+          <span v-if="m.orientacaoProfissional?.profissionalEspiritualidade" class="prof-flag">Espiritualidade</span>
+          <span v-if="m.orientacaoProfissional?.atividadeArtistica" class="prof-flag">Atividade Artística</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── ANO PESSOAL ── -->
+    <p class="section-title">✦ Ano Pessoal {{ apAtual?.ano }}</p>
+    <div class="ano-card card mb">
+      <div class="ano-inner">
+        <div class="ano-numero-wrap">
+          <span class="ano-label">AP</span>
+          <div :class="['ano-numero', ehMestre(apAtual.ap) ? 'num-mestre' : '']">{{ fmtSlash(apAtual.ap) }}</div>
+          <span class="ano-label">{{ apAtual.ano }}</span>
+        </div>
+        <div class="cts-wrap">
+          <div v-for="(ct, i) in [apAtual.cts?.ct1, apAtual.cts?.ct2, apAtual.cts?.ct3, apAtual.cts?.ct4]" :key="i" class="ct-item">
+            <div :class="['box-ciclo box-ciclo-c ct-box', ehMestre(ct) ? 'num-mestre' : '']">
+              <span>{{ fmtSlash(ct) }}</span>
+              <span class="sub-lbl">CT{{ i + 1 }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="periodo-ap">
+          <p class="frase-lbl">Período</p>
+          <p class="periodo-txt">{{ periodoAPAtual }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── ANÁLISES ── -->
+    <p class="section-title">✦ Análises</p>
+    <div class="analises-grid mb">
+
+      <div class="card analise-card">
+        <p class="analise-title">Ausências</p>
+        <div class="analise-boxes">
+          <div v-for="a in m.ausencias" :key="a" class="box-ausencia">{{ String(a).padStart(2,'0') }}</div>
+          <span v-if="!m.ausencias?.length" class="text-dim-sm">Nenhuma</span>
+        </div>
+      </div>
+
+      <div class="card analise-card">
+        <p class="analise-title">Duplicidades</p>
+        <div class="analise-boxes">
+          <div v-for="d in m.duplicidades" :key="d.vn" class="badge-dupla">
+            {{ fmtBase(d.vn) }} <small>{{ d.tipo }}</small>
+          </div>
+          <span v-if="!m.duplicidades?.length" class="text-dim-sm">Nenhuma</span>
+        </div>
+      </div>
+
+      <div class="card analise-card">
+        <p class="analise-title">Pureza</p>
+        <div class="pureza-rows">
+          <div class="pureza-item">
+            <span class="text-dim-sm">PA — Pureza do Alma</span>
+            <span class="pureza-val">{{ m.pureza?.pa }}</span>
+          </div>
+          <div class="pureza-item">
+            <span class="text-dim-sm">PPI — Pureza Pessoal I</span>
+            <span class="pureza-val">{{ m.pureza?.ppi }}</span>
+          </div>
+          <div class="pureza-item">
+            <span class="text-dim-sm">PPC — Pureza Pessoal C</span>
+            <span class="pureza-val">{{ m.pureza?.ppc }}</span>
           </div>
         </div>
       </div>
 
-      <!-- === FRASES === -->
-      <div class="secao-frases">
-        <div class="frase-linha">
-          <span class="frase-titulo">Frase Curta</span>
-          <div class="frase-conteudo">{{ m.frases?.fraseCurta }}</div>
+    </div>
+
+    <!-- ── LINHA DE ANOS AP9 ── -->
+    <div class="card mb anos-ap9">
+      <p class="analise-title" style="margin-bottom:8px;">Anos com AP 9</p>
+      <div class="ap9-lista">
+        <span v-for="(item, i) in m.anosAP9" :key="item.ano" class="ap9-item">
+          {{ item.ano }} ({{ item.idade }}a.)<span v-if="i < m.anosAP9.length - 1"> › </span>
+        </span>
+      </div>
+    </div>
+
+    <!-- ── TABELA DUPLICIDADES POR IDADE ── -->
+    <p class="section-title">✦ Duplicidades por Idade</p>
+    <div class="card mb tabela-dup-wrap">
+      <div class="dup-nav">
+        <button @click="offsetDup = Math.max(0, offsetDup - 14)" class="btn-nav">&lt;</button>
+        <span class="text-dim-sm">idades {{ idadesVisiveis[0] }} a {{ idadesVisiveis[idadesVisiveis.length-1] }}</span>
+        <button @click="offsetDup = Math.min(80-14, offsetDup + 14)" class="btn-nav">&gt;</button>
+      </div>
+      <div class="tabela-dup">
+        <div class="dup-linha-header">
+          <div class="dup-cell-lbl"></div>
+          <div v-for="idade in idadesVisiveis" :key="idade" class="dup-cell">{{ idade }}</div>
         </div>
-        <div class="frase-linha">
-          <span class="frase-titulo">Frase mais expandida</span>
-          <div class="frase-conteudo">{{ m.frases?.fraseExpandida }}</div>
+        <div class="dup-linha-status">
+          <div class="dup-cell-lbl"></div>
+          <div v-for="idade in idadesVisiveis" :key="idade" class="dup-cell">
+            <span v-if="statusGlobal(idade)" :class="['dup-badge', tipoCor(statusGlobal(idade))]">{{ statusGlobal(idade) }}</span>
+          </div>
         </div>
-        <div class="frase-linha">
-          <span class="frase-titulo">Frase Final <small>(humana / ajuste fino)</small></span>
-          <div class="frase-conteudo frase-vazia">&nbsp;</div>
+        <div v-for="vn in [1,2,3,4,5,6,7,8,9]" :key="vn" class="dup-linha-vn">
+          <div class="dup-cell-lbl">{{ String(vn).padStart(2,'0') }}</div>
+          <div v-for="idade in idadesVisiveis" :key="idade" class="dup-cell">
+            <span v-if="m.dupPorIdade[idade]?.[vn]" :class="['dup-badge', tipoCor(m.dupPorIdade[idade][vn].tipo)]">{{ m.dupPorIdade[idade][vn].tipo }}</span>
+            <span v-else class="dup-num">{{ String(vn).padStart(2,'0') }}</span>
+          </div>
         </div>
       </div>
-
-      <!-- === AP ATUAL + LINHA DE ANOS AP9 === -->
-      <div class="secao-ap-atual">
-        <div class="ap-atual-linha">
-          <div class="ap-box-grande">
-            <span class="ap-label">AP</span>
-            <div class="vn-box destaque grande">{{ fmtBase(apAtual.ap) }}</div>
-          </div>
-          <div class="ap-periodo-texto">
-            {{ periodoAPAtual }}
-          </div>
-        </div>
-
-        <div class="linha-anos-ap9">
-          <span v-for="(item, i) in m.anosAP9" :key="item.ano" class="ano-ap9">
-            {{ item.ano }} ({{ item.idade }}a.)
-            <span v-if="i < m.anosAP9.length - 1"> &gt; </span>
-          </span>
-        </div>
-      </div>
-
-    </div><!-- fim folha 1 -->
-
-    <!-- ============================================================
-         FOLHA 2 — Tabela de Duplicidades + Percentuais
-    ============================================================ -->
-    <div class="folha folha-quebra">
-
-      <!-- === TABELA DE DUPLICIDADES POR IDADE === -->
-      <div class="secao-dup-titulo">
-        <span v-if="vnComMaisDup" class="dup-badge">Dup {{ vnComMaisDup }}</span>
-      </div>
-      <div class="tabela-dup-wrapper">
-        <div class="tabela-dup" v-if="idadesTabela.length">
-          <!-- Navegação -->
-          <div class="dup-nav">
-            <button @click="offsetDup = Math.max(0, offsetDup - 14)" class="dup-nav-btn">&lt;</button>
-            <span class="dup-nav-label">idades {{ idadesVisiveis[0] }} a {{ idadesVisiveis[idadesVisiveis.length-1] }}</span>
-            <button @click="offsetDup = Math.min(idadesTabela.length - 14, offsetDup + 14)" class="dup-nav-btn">&gt;&gt;</button>
-          </div>
-
-          <!-- Linha de idades -->
-          <div class="dup-linha-header">
-            <div class="dup-cell-label"></div>
-            <div v-for="idade in idadesVisiveis" :key="idade" class="dup-cell-idade">
-              {{ idade }}
-            </div>
-          </div>
-
-          <!-- Linha de status global (D/T/Qd/Qt) -->
-          <div class="dup-linha-status">
-            <div class="dup-cell-label dup-cell-label-sm"></div>
-            <div v-for="idade in idadesVisiveis" :key="idade" class="dup-cell-status">
-              <span v-if="statusGlobal(idade)" :class="['dup-badge-cell', tipoCor(statusGlobal(idade))]">
-                {{ statusGlobal(idade) }}
-              </span>
-            </div>
-          </div>
-
-          <!-- Uma linha por VN (1-9) -->
-          <div v-for="vn in [1,2,3,4,5,6,7,8,9]" :key="vn" class="dup-linha-vn">
-            <div class="dup-cell-label">{{ String(vn).padStart(2,'0') }}</div>
-            <div v-for="idade in idadesVisiveis" :key="idade" class="dup-cell-vn">
-              <span v-if="m.dupPorIdade[idade]?.[vn]"
-                :class="['dup-badge-cell', tipoCor(m.dupPorIdade[idade][vn].tipo)]">
-                {{ m.dupPorIdade[idade][vn].tipo }}
-              </span>
-              <span v-else class="dup-num">{{ String(vn).padStart(2,'0') }}</span>
-            </div>
-          </div>
-
-        </div>
-      </div>
-
-      <!-- === PERCENTUAIS POR CICLO === -->
-      <div class="secao-percentuais">
-        <table class="tabela-pct">
-          <thead>
-            <tr>
-              <th class="pct-th-label"></th>
-              <th class="pct-th">Total</th>
-              <th class="pct-th">1º. Ciclo:</th>
-              <th class="pct-th">2º. Ciclo:</th>
-              <th class="pct-th">3º. Ciclo:</th>
-              <th class="pct-th-obs"></th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td class="pct-td-label">Racional <span class="pct-dots">........................................</span></td>
-              <td class="pct-td">{{ m.percentuaisCiclo?.total?.razao }}%</td>
-              <td class="pct-td">{{ m.percentuaisCiclo?.c1?.razao }}%</td>
-              <td class="pct-td">{{ m.percentuaisCiclo?.c2?.razao }}%</td>
-              <td class="pct-td">{{ m.percentuaisCiclo?.c3?.razao }}%</td>
-              <td class="pct-td-obs"></td>
-            </tr>
-            <tr>
-              <td class="pct-td-label">Emocional <span class="pct-dots">.......................................</span></td>
-              <td class="pct-td">{{ m.percentuaisCiclo?.total?.emocao }}%</td>
-              <td class="pct-td">{{ m.percentuaisCiclo?.c1?.emocao }}%</td>
-              <td class="pct-td">{{ m.percentuaisCiclo?.c2?.emocao }}%</td>
-              <td class="pct-td">{{ m.percentuaisCiclo?.c3?.emocao }}%</td>
-              <td class="pct-td-obs"></td>
-            </tr>
-
-            <tr class="pct-spacer"><td colspan="6"></td></tr>
-
-            <tr>
-              <td class="pct-td-label">Espiritual <span class="pct-dots">......................................</span></td>
-              <td class="pct-td">{{ m.percentuaisCiclo?.total?.espiritual }}%</td>
-              <td class="pct-td">{{ m.percentuaisCiclo?.c1?.espiritual }}%</td>
-              <td class="pct-td">{{ m.percentuaisCiclo?.c2?.espiritual }}%</td>
-              <td class="pct-td">{{ m.percentuaisCiclo?.c3?.espiritual }}%</td>
-              <td class="pct-td-obs"></td>
-            </tr>
-            <tr>
-              <td class="pct-td-label pct-td-indent">Possuir <span class="pct-dots">.............</span></td>
-              <td class="pct-td">{{ m.percentuaisCiclo?.total?.possuir }}%</td>
-              <td class="pct-td">{{ m.percentuaisCiclo?.c1?.possuir }}%</td>
-              <td class="pct-td">{{ m.percentuaisCiclo?.c2?.possuir }}%</td>
-              <td class="pct-td">{{ m.percentuaisCiclo?.c3?.possuir }}%</td>
-              <td class="pct-td-obs"></td>
-            </tr>
-            <tr>
-              <td class="pct-td-label pct-td-indent">Compartilhar <span class="pct-dots">.........</span></td>
-              <td class="pct-td">{{ m.percentuaisCiclo?.total?.compartilhar }}%</td>
-              <td class="pct-td">{{ m.percentuaisCiclo?.c1?.compartilhar }}%</td>
-              <td class="pct-td">{{ m.percentuaisCiclo?.c2?.compartilhar }}%</td>
-              <td class="pct-td">{{ m.percentuaisCiclo?.c3?.compartilhar }}%</td>
-              <td class="pct-td-obs"></td>
-            </tr>
-            <tr>
-              <td class="pct-td-label pct-td-indent">Vivenciar <span class="pct-dots">............</span></td>
-              <td class="pct-td">{{ m.percentuaisCiclo?.total?.vivenciar }}%</td>
-              <td class="pct-td">{{ m.percentuaisCiclo?.c1?.vivenciar }}%</td>
-              <td class="pct-td">{{ m.percentuaisCiclo?.c2?.vivenciar }}%</td>
-              <td class="pct-td">{{ m.percentuaisCiclo?.c3?.vivenciar }}%</td>
-              <td class="pct-td-obs"></td>
-            </tr>
-
-            <tr class="pct-spacer"><td colspan="6"></td></tr>
-
-            <tr>
-              <td class="pct-td-label">Intensa <span class="pct-dots">...................................</span></td>
-              <td class="pct-td">{{ m.percentuaisCiclo?.total?.intensa }}%</td>
-              <td class="pct-td">{{ m.percentuaisCiclo?.c1?.intensa }}%</td>
-              <td class="pct-td">{{ m.percentuaisCiclo?.c2?.intensa }}%</td>
-              <td class="pct-td">{{ m.percentuaisCiclo?.c3?.intensa }}%</td>
-              <td class="pct-td-obs"></td>
-            </tr>
-            <tr>
-              <td class="pct-td-label">Média <span class="pct-dots">.....................................</span></td>
-              <td class="pct-td">{{ m.percentuaisCiclo?.total?.media }}%</td>
-              <td class="pct-td">{{ m.percentuaisCiclo?.c1?.media }}%</td>
-              <td class="pct-td">{{ m.percentuaisCiclo?.c2?.media }}%</td>
-              <td class="pct-td">{{ m.percentuaisCiclo?.c3?.media }}%</td>
-              <td class="pct-td-obs"></td>
-            </tr>
-            <tr>
-              <td class="pct-td-label">Fraca <span class="pct-dots">.....................................</span></td>
-              <td class="pct-td">{{ m.percentuaisCiclo?.total?.fraca }}%</td>
-              <td class="pct-td">{{ m.percentuaisCiclo?.c1?.fraca }}%</td>
-              <td class="pct-td">{{ m.percentuaisCiclo?.c2?.fraca }}%</td>
-              <td class="pct-td">{{ m.percentuaisCiclo?.c3?.fraca }}%</td>
-              <td class="pct-td-obs"></td>
-            </tr>
-
-            <tr class="pct-spacer"><td colspan="6"></td></tr>
-
-            <tr>
-              <td class="pct-td-label">Agressividade <span class="pct-dots">.........................</span></td>
-              <td class="pct-td">{{ m.percentuaisCiclo?.total?.agressividade }}%</td>
-              <td class="pct-td">{{ m.percentuaisCiclo?.c1?.agressividade }}%</td>
-              <td class="pct-td">{{ m.percentuaisCiclo?.c2?.agressividade }}%</td>
-              <td class="pct-td">{{ m.percentuaisCiclo?.c3?.agressividade }}%</td>
-              <td class="pct-td-obs"></td>
-            </tr>
-            <tr>
-              <td class="pct-td-label">Insegurança / Instabilidade: <span class="pct-dots">...</span></td>
-              <td class="pct-td">{{ m.percentuaisCiclo?.total?.inseguranca }}%</td>
-              <td class="pct-td">{{ m.percentuaisCiclo?.c1?.inseguranca }}%</td>
-              <td class="pct-td">{{ m.percentuaisCiclo?.c2?.inseguranca }}%</td>
-              <td class="pct-td">{{ m.percentuaisCiclo?.c3?.inseguranca }}%</td>
-              <td class="pct-td-obs"></td>
-            </tr>
-            <tr>
-              <td class="pct-td-label">Dependência <span class="pct-dots">.................................</span></td>
-              <td class="pct-td">{{ m.percentuaisCiclo?.total?.dependencia }}%</td>
-              <td class="pct-td">{{ m.percentuaisCiclo?.c1?.dependencia }}%</td>
-              <td class="pct-td">{{ m.percentuaisCiclo?.c2?.dependencia }}%</td>
-              <td class="pct-td">{{ m.percentuaisCiclo?.c3?.dependencia }}%</td>
-              <td class="pct-td-obs"></td>
-            </tr>
-
-            <tr class="pct-linha-cp">
-              <td class="pct-td-label pct-label-cp">CP</td>
-              <td class="pct-td">{{ m.percentuaisCiclo?.total?.cp }}%</td>
-              <td class="pct-td">{{ m.percentuaisCiclo?.c1?.cp }}%</td>
-              <td class="pct-td">{{ m.percentuaisCiclo?.c2?.cp }}%</td>
-              <td class="pct-td">{{ m.percentuaisCiclo?.c3?.cp }}%</td>
-              <td class="pct-td-obs"></td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-    </div><!-- fim folha 2 -->
-
-    <!-- ============================================================
-         FOLHA 3 — Multi-Ano AP (Anterior, Atual, Próximo)
-    ============================================================ -->
-    <div class="folha folha-quebra">
-      <div v-for="(anoData, idx) in m.multiAnoAP" :key="anoData.ano" class="bloco-ano-ap">
-
-        <div class="bloco-ano-lateral">
-          <span class="label-periodo">{{ anoData.label }}</span>
-        </div>
-
-        <div class="bloco-ano-conteudo">
-          <!-- AP block (canto superior esquerdo) -->
-          <div class="ap-ano-header">
-            <div class="ap-ano-codigo">
-              <div class="ap-codigo-letras">
-                <span>A</span><span>N</span><span>T</span>
-              </div>
-              <div class="ap-ano-numero">{{ anoData.ano }}</div>
-              <div class="vn-box" :class="idx === 1 ? 'destaque-preto' : ''">{{ fmtBase(anoData.ap) }}</div>
-            </div>
-
-            <!-- CTs com datas -->
-            <div class="cts-lista">
-              <div v-for="(ct, qi) in [anoData.cts.ct1, anoData.cts.ct2, anoData.cts.ct3, anoData.cts.ct4]"
-                   :key="qi" class="ct-item">
-                <div class="ct-label">CT<sub>{{ qi+1 }}</sub>:</div>
-                <div :class="['vn-box ct-box', idx === 1 ? 'destaque-preto' : '']">
-                  {{ String(ct).padStart(2,'0') }}
-                </div>
-                <div class="ct-periodo">
-                  {{ anoData.periodosCT[qi]?.inicio }} à {{ anoData.periodosCT[qi]?.fim }}
-                </div>
-              </div>
-            </div>
-
-            <!-- Valores mensais -->
-            <div class="mensais-lista">
-              <div v-for="mes in anoData.mensais" :key="mes.mesNum" class="mensal-item">
-                <span class="mensal-nome">{{ mes.mes }}</span>
-                <span class="mensal-sep">=</span>
-                <span class="mensal-valor">{{ String(mes.valor).padStart(2,'0') }}</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="bloco-ano-ano-vert">
-          <span class="ano-vertical">{{ anoData.ano }}</span>
-        </div>
-
-      </div>
-      <!-- === LIGAÇÕES FAMILIARES === -->
-      <div class="secao-ligacoes">
-        <table class="tabela-ligacoes">
-          <thead>
-            <tr>
-              <th colspan="4" class="lig-titulo">Ligações Familiares</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="row in m.ligacoesFamiliares" :key="row.posicao">
-              <td class="lig-pos">{{ row.posicao }}</td>
-              <td class="lig-vn">{{ String(row.vn).padStart(2,'0') }}</td>
-              <td class="lig-desc">{{ row.descricao || '-' }}</td>
-              <td class="lig-familiar">{{ row.familiar || '-' }}</td>
-            </tr>
-          </tbody>
-        </table>
-        <div class="profissional-espiritualidade">
-          Profissional de Espiritualidade:
-          <span :class="['esp-badge', m.orientacaoProfissional?.profissionalEspiritualidade ? 'esp-sim' : 'esp-nao']">
-            {{ m.orientacaoProfissional?.profissionalEspiritualidade ? 'Sim' : 'Não' }}
-          </span>
-        </div>
-      </div>
-
-    </div><!-- fim folha 3 -->
-
-    <!-- ============================================================
-         FOLHA 4 — Orientação Profissional (Tradicionais + Novas)
-    ============================================================ -->
-    <div class="folha folha-quebra" v-if="m.orientacaoProfissional?.tabela">
-
-      <!-- Profissões Tradicionais -->
-      <div class="secao-prof">
-        <div class="prof-passos">
-
-          <!-- Passo 1 -->
-          <div class="passo-col">
-            <div class="passo-header">
-              <span class="passo-titulo">Profissões</span>
-              <span class="passo-inc-titulo">Passo 1<br><small>Incidências</small></span>
-            </div>
-            <div v-for="item in m.orientacaoProfissional.tabela.tradicionais.passo1"
-                 :key="item.prof"
-                 :class="['prof-linha', item.inc >= m.orientacaoProfissional.tabela.tradicionais.maxP1 && item.inc > 0 ? 'prof-destaque' : '']">
-              <span class="prof-nome">{{ item.prof }}</span>
-              <span class="prof-inc">{{ item.inc > 0 ? item.inc : '' }}</span>
-            </div>
-            <div class="passo-footer">Passo 1</div>
-          </div>
-
-          <!-- Passo 2 -->
-          <div class="passo-col">
-            <div class="passo-header">
-              <span class="passo-titulo">Profissões</span>
-              <span class="passo-inc-titulo">Passo 2<br><small>Incid.</small></span>
-            </div>
-            <div v-for="item in m.orientacaoProfissional.tabela.tradicionais.passo2"
-                 :key="item.prof"
-                 :class="['prof-linha', item.inc >= m.orientacaoProfissional.tabela.tradicionais.maxP2 && item.inc > 0 ? 'prof-destaque' : '']">
-              <span class="prof-nome">{{ item.prof }}</span>
-              <span class="prof-inc">{{ item.inc > 0 ? item.inc : '' }}</span>
-            </div>
-            <div class="passo-footer">Passo 2</div>
-          </div>
-
-          <!-- Passo 3 -->
-          <div class="passo-col">
-            <div class="passo-header">
-              <span class="passo-titulo">Profissões</span>
-              <span class="passo-inc-titulo">Passo 3<br><small>Incid.</small></span>
-            </div>
-            <div v-for="item in m.orientacaoProfissional.tabela.tradicionais.passo3"
-                 :key="item.prof"
-                 :class="['prof-linha', item.inc >= m.orientacaoProfissional.tabela.tradicionais.maxP3 && item.inc > 0 ? 'prof-destaque' : '']">
-              <span class="prof-nome">{{ item.prof }}</span>
-              <span class="prof-inc">{{ item.inc > 0 ? item.inc : '' }}</span>
-            </div>
-            <div class="passo-footer">Passo 3</div>
-          </div>
-
-        </div>
-      </div>
-
-      <!-- Novas Profissões -->
-      <div class="secao-prof">
-        <div class="prof-passos">
-
-          <div class="passo-col">
-            <div class="passo-header">
-              <span class="passo-titulo">Novas Profissões</span>
-              <span class="passo-inc-titulo">Passo 1<br><small>Incidências</small></span>
-            </div>
-            <div v-for="item in m.orientacaoProfissional.tabela.novas.passo1"
-                 :key="item.prof"
-                 class="prof-linha">
-              <span class="prof-nome">{{ item.prof }}</span>
-              <span class="prof-inc">{{ item.inc > 0 ? item.inc : '' }}</span>
-            </div>
-          </div>
-
-          <div class="passo-col">
-            <div class="passo-header">
-              <span class="passo-titulo">Novas Profissões</span>
-              <span class="passo-inc-titulo">Passo 2<br><small>Incid.</small></span>
-            </div>
-            <div v-for="item in m.orientacaoProfissional.tabela.novas.passo2"
-                 :key="item.prof"
-                 class="prof-linha">
-              <span class="prof-nome">{{ item.prof }}</span>
-              <span class="prof-inc">{{ item.inc > 0 ? item.inc : '' }}</span>
-            </div>
-          </div>
-
-          <div class="passo-col">
-            <div class="passo-header">
-              <span class="passo-titulo">Novas Profissões</span>
-              <span class="passo-inc-titulo">Passo 3<br><small>Incid.</small></span>
-            </div>
-            <div v-for="item in m.orientacaoProfissional.tabela.novas.passo3"
-                 :key="item.prof"
-                 class="prof-linha">
-              <span class="prof-nome">{{ item.prof }}</span>
-              <span class="prof-inc">{{ item.inc > 0 ? item.inc : '' }}</span>
-            </div>
-          </div>
-
-        </div>
-      </div>
-
-    </div><!-- fim folha 4 -->
+    </div>
 
   </div>
 </template>
@@ -626,104 +342,40 @@ const historico = useHistoricoStore()
 const router = useRouter()
 const mapaRef = ref(null)
 const offsetDup = ref(20)
+const gerandoPDF = ref(false)
 
 const m = computed(() => store.mapa)
 
-const PERIODOS_CICLOS = {
-  c1: '00 / 28',
-  c2: '29 / 56',
-  c3: '+ 57',
+function fmtSlash(vn) {
+  if (vn === 11) return '11/2'
+  if (vn === 22) return '22/4'
+  return String(vn ?? 0).padStart(2, '0')
 }
 
-const PERIODOS_DESAFIOS = {
-  d1: '00 / 28',
-  d2: '29 / 56',
-  dm: 'vida inteira',
-}
-
-// Data de geração formatada
-const dataGerado = computed(() => {
-  const agora = new Date()
-  return agora.toLocaleDateString('pt-BR') + ' ' + agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) + ' ' +
-    (agora.getHours() < 12 ? 'AM' : 'PM')
-})
-
-// AP do ano atual
-const apAtual = computed(() => {
-  return m.value?.multiAnoAP?.[1] ?? { ap: 0, periodosCT: [] }
-})
-
-// Texto do período do AP atual
-const periodoAPAtual = computed(() => {
-  if (!apAtual.value?.periodosCT?.length) return ''
-  const inicio = apAtual.value.periodosCT[0]?.inicio ?? ''
-  const fim = apAtual.value.periodosCT[3]?.fim ?? ''
-  return `${inicio} à ${fim}`
-})
-
-// Formata VN como string com zero à esquerda
 function fmtBase(vn) {
   if (!vn && vn !== 0) return '00'
   const base = vn === 11 ? 2 : vn === 22 ? 4 : vn
   return String(base).padStart(2, '0')
 }
 
-// Formata VN mostrando a barra para mestres (ex: 11/2)
-function fmtSlash(vn) {
-  if (vn === 11) return '11/2'
-  if (vn === 22) return '22/4'
-  return String(vn).padStart(2, '0')
-}
+function ehMestre(vn) { return vn === 11 || vn === 22 }
+function temLegadoEm(r) { return m.value?.legado?.some(l => l.realizacao === r) }
 
-// Formata VN completo (inclui valor mestre se existir)
-function fmt(vn) {
-  return String(vn === 11 ? 2 : vn === 22 ? 4 : vn).padStart(2, '0')
-}
+const apAtual = computed(() => m.value?.multiAnoAP?.[1] ?? { ap: 0, cts: {}, periodosCT: [] })
 
-function ehMestre(vn) {
-  return vn === 11 || vn === 22
-}
-
-// Posicoes fixas que sempre recebem cor laranja
-const POSICOES_FIXAS_LARANJA = new Set(['mo', 'eu', 'ex', 'cd', 'merito', 'dm', 'tributo'])
-
-// Retorna classe de cor para box: laranja apenas para as posicoes fixas
-function corBox(vn, posicao) {
-  return POSICOES_FIXAS_LARANJA.has(posicao) ? 'destaque' : ''
-}
-
-// Verifica se a realizacao está ativa na idade atual
-function ehAtivo(qual) {
-  if (!m.value?.realizacoes) return false
-  const idade = m.value.idade
-  const r = m.value.realizacoes
-  if (qual === 'r1') return idade <= r[0].fim
-  if (qual === 'r2') return idade >= r[1].inicio && (r[1].fim === null || idade <= r[1].fim)
-  if (qual === 'r3') return idade >= r[2].inicio && (r[2].fim === null || idade <= r[2].fim)
-  if (qual === 'r4') return idade >= r[3].inicio
-  return false
-}
-
-// Tabela de duplicidades: idades disponíveis
-const idadesTabela = computed(() => {
-  return Array.from({ length: 81 }, (_, i) => i)
+const periodoAPAtual = computed(() => {
+  if (!apAtual.value?.periodosCT?.length) return ''
+  const ini = apAtual.value.periodosCT[0]?.inicio ?? ''
+  const fim = apAtual.value.periodosCT[3]?.fim ?? ''
+  return `${ini} → ${fim}`
 })
 
-const idadesVisiveis = computed(() => {
-  return idadesTabela.value.slice(offsetDup.value, offsetDup.value + 29)
-})
+const idadesTabela = computed(() => Array.from({ length: 81 }, (_, i) => i))
+const idadesVisiveis = computed(() => idadesTabela.value.slice(offsetDup.value, offsetDup.value + 22))
 
-// VN que mais aparece em duplicidade (para mostrar no título)
-const vnComMaisDup = computed(() => {
-  if (!m.value?.duplicidades?.length) return null
-  const t = [...m.value.duplicidades].sort((a, b) => b.quantidade - a.quantidade)
-  return t[0]?.vn === 11 ? 2 : t[0]?.vn === 22 ? 4 : t[0]?.vn
-})
-
-// Status global de duplicidade em uma idade (maior tipo)
 function statusGlobal(idade) {
   const dup = m.value?.dupPorIdade?.[idade]
-  if (!dup || Object.keys(dup).length === 0) return null
+  if (!dup || !Object.keys(dup).length) return null
   const tipos = Object.values(dup).map(d => d.tipo)
   if (tipos.includes('Qt')) return 'Qt'
   if (tipos.includes('Qd')) return 'Qd'
@@ -733,8 +385,7 @@ function statusGlobal(idade) {
 }
 
 function tipoCor(tipo) {
-  if (tipo === 'T' || tipo === 'Qt' || tipo === 'Qd') return 'badge-t'
-  return 'badge-d'
+  return tipo === 'T' || tipo === 'Qt' || tipo === 'Qd' ? 'badge-gold' : 'badge-dim'
 }
 
 function salvar() {
@@ -742,11 +393,7 @@ function salvar() {
   alert('Salvo no histórico.')
 }
 
-function imprimir() {
-  window.print()
-}
-
-const gerandoPDF = ref(false)
+function imprimir() { window.print() }
 
 async function baixarPDF() {
   if (!m.value) return
@@ -760,479 +407,489 @@ async function baixarPDF() {
 </script>
 
 <style scoped>
-/* ============================================================
-   WRAPPER GERAL
-============================================================ */
-.mapa-wrapper {
-  font-family: 'Arial', sans-serif;
-  font-size: 11px;
-  background: #f5f5f0;
-  color: #111;
-}
-
-.folha {
-  width: 100%;
-  max-width: 900px;
+/* ── LAYOUT ── */
+.mapa-page {
+  max-width: 1100px;
   margin: 0 auto;
-  background: white;
-  padding: 0;
-  border: 1px solid #ccc;
-  margin-bottom: 16px;
+  padding: 28px 20px 60px;
 }
 
-.folha-quebra {
-  page-break-before: always;
-}
-
-/* ============================================================
-   CABEÇALHO ESCURO
-============================================================ */
-.cabecalho {
-  background: #1c2a3a;
-  color: white;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 170px 92px;
-  align-items: center;
-  column-gap: 14px;
-  padding: 8px 10px;
-}
-
-.cab-esquerda {
-  min-width: 0;
+.vazio {
   display: flex;
-  flex-direction: column;
+  align-items: center;
   justify-content: center;
+  min-height: calc(100vh - 56px);
+  color: var(--text-dim);
 }
 
-.cab-linha {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 3px;
-  flex-wrap: wrap;
-  min-height: 22px;
+.link-gold { color: var(--gold); text-decoration: none; }
+.link-gold:hover { text-decoration: underline; }
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px;
 }
 
-.cab-label {
-  color: #aaa;
-  font-size: 10px;
-}
+.mb { margin-bottom: 16px; }
 
-.cab-label.ml {
-  margin-left: 10px;
-}
-
-.cab-campo {
-  background: white;
-  color: #111;
-  padding: 1px 6px;
-  min-width: 32px;
-  text-align: center;
-  font-weight: bold;
+.section-title {
   font-size: 11px;
-  border: 1px solid #555;
+  font-weight: 600;
+  color: var(--gold);
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  margin-bottom: 10px;
 }
 
-.cab-valor {
-  color: white;
-  font-size: 11px;
-}
-
-.nome-valor {
-  font-size: 13px;
-  font-weight: bold;
-  background: white;
-  color: #111;
-  padding: 1px 8px;
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.cab-piramide {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 170px;
-  min-width: 170px;
-  align-self: stretch;
-  padding: 2px 0;
-}
-
-.cab-piramide svg {
-  display: block;
-  width: 160px;
-  height: auto;
-  overflow: visible;
-}
-
-.piramide-svg text {
-  font-family: Arial, sans-serif;
-  font-style: normal;
-}
-
-.cab-acoes {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  width: 92px;
-  min-width: 92px;
-}
-
-.btn-acao {
-  background: #2d4a6a;
-  color: white;
-  border: 1px solid #4a6a8a;
-  min-height: 24px;
-  padding: 3px 8px;
-  font-size: 10px;
-  cursor: pointer;
-  text-decoration: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-}
-
-.btn-acao:hover {
-  background: #3a5a7a;
-}
-
-.btn-pdf {
-  background: #c47a20;
-  border-color: #e09030;
-  font-weight: bold;
-}
-
-.btn-pdf:hover {
-  background: #d4873a;
-}
-
-.btn-pdf:disabled {
-  opacity: 0.6;
-  cursor: default;
-}
-
-/* ============================================================
-   GRID DE NÚMEROS
-============================================================ */
-.grid-numeros {
-  border-top: 2px solid #ccc;
-  padding: 8px 8px 6px;
-}
-
-.col-headers {
-  display: grid;
-  grid-template-columns: 72px 72px minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) 110px;
-  margin-bottom: 6px;
-}
-
-.ch-vazio {}
-
-.ch-tag {
-  background: #1c2a3a;
-  color: white;
-  text-align: center;
-  padding: 1px 4px;
-  font-size: 10px;
-  font-weight: bold;
-  margin: 0 2px;
-}
-
-.grid-linha {
-  display: grid;
-  grid-template-columns: 72px 72px minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) 110px;
-  align-items: center;
-  min-height: 64px;
-  border-bottom: 1px solid #eee;
-}
-
-.realizacao-espontanea-linha {
-  min-height: 24px;
-  border-bottom: none;
-}
-
-/* Células individuais */
-.vn-cell {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 4px 2px;
-  position: relative;
-}
-
-.vn-superscript {
-  font-size: 9px;
-  color: #555;
-  line-height: 1;
-  margin-bottom: 1px;
-}
-
-.vn-box {
-  width: 34px;
-  height: 30px;
-  border: 1.5px solid #333;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: bold;
-  font-size: 14px;
-  line-height: 1;
-  background: white;
-  text-align: center;
-  font-variant-numeric: tabular-nums;
-  font-feature-settings: 'tnum' 1;
-  box-sizing: border-box;
-  vertical-align: middle;
-}
-
-.vn-box.destaque {
-  background: #d4873a;
-  color: white;
-  border-color: #b36820;
-}
-
-.vn-box.variavel-azul {
-  background: #1c2a3a;
-  color: white;
-  border-color: #0a1520;
-}
-
-.vn-box.destaque-preto {
-  background: #1c2a3a;
-  color: white;
-  border-color: #0a1520;
-}
-
-.vn-box.dm-box {
-  background: #1c2a3a;
-  color: white;
-  border-color: #0a1520;
-}
-
-.vn-box.grande {
-  width: 44px;
-  height: 38px;
-  font-size: 18px;
-}
-
-.vn-label {
-  font-size: 9px;
-  color: #444;
-  margin-top: 2px;
-  text-align: center;
-}
-
-.vn-label-sub {
-  font-size: 9px;
-  color: #444;
-  line-height: 1;
-  margin-top: 1px;
-}
-
-/* Células de ciclo, desafio e realização */
-.ciclo-cell,
-.desafio-cell,
-.realizacao-cell {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  padding: 4px 6px;
-  flex-wrap: nowrap;
-  min-width: 0;
-  white-space: nowrap;
-}
-
-.seta {
-  font-size: 9px;
-  color: #666;
-}
-
-.seta-esq {
-  font-size: 9px;
-  color: #666;
-}
-
-.periodo-texto {
-  font-size: 9px;
-  color: #555;
-  white-space: nowrap;
-  display: inline-block;
-  min-width: 42px;
-  text-align: left;
-}
-
-/* Especiais (Legado, Realização Espontânea) */
-.especial-cell {
-  display: flex;
-  align-items: center;
-  padding: 0 4px;
-  min-width: 0;
-  justify-content: flex-start;
-}
-
-.badge-especial {
-  font-size: 9px;
-  color: #333;
-  white-space: nowrap;
-  border-top: 1px solid #333;
-  padding-top: 2px;
-  display: inline-block;
-  line-height: 1.1;
-}
-
-@media (max-width: 620px) {
-  .cabecalho {
-    grid-template-columns: 1fr;
-    row-gap: 10px;
-  }
-
-  .cab-piramide,
-  .cab-acoes {
-    width: 100%;
-    min-width: 0;
-    justify-self: center;
-  }
-
-  .cab-acoes {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .col-headers,
-  .grid-linha {
-    grid-template-columns: 64px 64px minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) 92px;
-  }
-}
-
-/* ============================================================
-   FRASES
-============================================================ */
-.secao-frases {
-  border-top: 2px solid #aaa;
-  padding: 6px 10px;
-}
-
-.frase-linha {
-  margin-bottom: 6px;
-}
-
-.frase-titulo {
-  font-weight: bold;
-  font-size: 10px;
-  color: #111;
-  display: block;
-  margin-bottom: 2px;
-}
-
-.frase-titulo small {
-  font-weight: normal;
-  color: #666;
-}
-
-.frase-conteudo {
-  background: #f8e8c8;
-  border: 1px solid #ccc;
-  padding: 4px 8px;
-  font-size: 11px;
-  min-height: 22px;
-}
-
-.frase-vazia {
-  background: white;
-  min-height: 28px;
-}
-
-/* ============================================================
-   AP ATUAL + LINHA DE ANOS AP9
-============================================================ */
-.secao-ap-atual {
-  border-top: 1px solid #ccc;
-  padding: 6px 10px;
-}
-
-.ap-atual-linha {
+/* ── CABEÇALHO ── */
+.mapa-cabecalho {
   display: flex;
   align-items: center;
   gap: 16px;
-  margin-bottom: 6px;
+  flex-wrap: wrap;
 }
 
-.ap-box-grande {
+.cab-info { flex: 1; }
+.cab-info h2 { font-size: 18px; font-weight: 600; color: var(--text); }
+.cab-info p { font-size: 13px; color: var(--text-dim); margin-top: 3px; }
+
+.cab-piramide { flex-shrink: 0; }
+
+.cab-acoes {
   display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.btn-sm {
+  border: 1px solid var(--gold);
+  color: var(--gold);
+  background: transparent;
+  font-size: 11px;
+  padding: 5px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-family: inherit;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  transition: background 0.15s, color 0.15s;
+}
+
+.btn-sm:hover, .btn-sm:not(:disabled):hover {
+  background: var(--gold);
+  color: var(--text-dark);
+}
+
+.btn-sm:disabled { opacity: 0.5; cursor: default; }
+
+.btn-gold {
+  background: var(--gold);
+  color: var(--text-dark);
+  font-weight: 700;
+}
+
+.btn-gold:hover { opacity: 0.85; }
+
+/* ── GRID PRINCIPAL ── */
+.grid-principal {
+  display: grid;
+  grid-template-columns: 1fr 1fr 2.6fr;
+  gap: 14px;
+}
+
+.col-nucleos,
+.col-jornada {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.col-ciclos {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.col-label {
+  font-size: 10px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 6px;
+  margin-bottom: 4px;
+}
+
+.nucleo-item {
+  display: flex;
+  flex-direction: column;
   align-items: center;
   gap: 4px;
 }
 
-.ap-label {
+.nucleo-top {
   font-size: 10px;
-  color: #666;
+  color: var(--text-dim);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
-.ap-periodo-texto {
-  font-size: 11px;
-  color: #333;
+.nucleo-bot {
+  font-size: 10px;
+  color: var(--text-dim);
+  text-align: center;
 }
 
-.linha-anos-ap9 {
-  font-size: 10px;
-  color: #333;
+.box-num {
+  width: 60px;
+  height: 60px;
+  border-radius: 8px;
   display: flex;
-  flex-wrap: wrap;
-  gap: 2px;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+  font-weight: 700;
 }
 
-.ano-ap9 {
+.box-gold {
+  background: var(--gold);
+  color: var(--text-dark);
+}
+
+.box-mestre {
+  font-size: 17px;
+}
+
+/* ── CICLOS HEADER ── */
+.ciclos-header {
+  display: grid;
+  grid-template-columns: 28px 1fr 10px 1fr 10px 1fr 48px;
+  align-items: center;
+  gap: 4px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 4px;
+}
+
+.ciclos-header span {
+  font-size: 9px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  text-align: center;
+}
+
+.ciclo-row {
+  display: grid;
+  grid-template-columns: 28px 1fr 10px 1fr 10px 1fr 48px;
+  align-items: center;
+  gap: 4px;
+}
+
+.ciclo-per {
+  font-size: 8px;
+  color: var(--text-dim);
+  text-align: right;
+  line-height: 1.4;
+}
+
+.ciclo-per-right {
+  font-size: 8px;
+  color: var(--text-dim);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-left: 4px;
+}
+
+.arr {
+  font-size: 10px;
+  color: var(--text-dim);
+  text-align: center;
+}
+
+.box-ciclo {
+  height: 42px;
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 15px;
+  font-weight: 700;
+  gap: 1px;
+}
+
+.sub-lbl {
+  font-size: 8px;
+  font-weight: 400;
+  color: var(--text-dim);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.box-ciclo-c, .box-ciclo-d {
+  background: var(--bg-deep);
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+.box-ciclo-r {
+  background: var(--blue-surface);
+  border: 1px solid var(--border-blue);
+  color: var(--text);
+}
+
+.legado-border { border-color: var(--gold); }
+
+.legado-badge {
+  font-size: 7px;
+  background: var(--gold);
+  color: var(--text-dark);
+  border-radius: 3px;
+  padding: 1px 4px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
   white-space: nowrap;
 }
 
-/* ============================================================
-   TABELA DE DUPLICIDADES
-============================================================ */
-.secao-dup-titulo {
-  padding: 6px 10px;
-  border-top: 2px solid #ccc;
+.num-mestre {
+  color: var(--gold);
+  text-shadow: 0 0 10px rgba(201,162,39,0.5);
 }
 
-.dup-badge {
+/* ── FRASES ── */
+.frases-grid {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 14px;
+}
+
+.frase-card { display: flex; flex-direction: column; gap: 6px; }
+.frase-lbl {
+  font-size: 10px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.frase-txt {
+  font-size: 13px;
+  color: var(--text);
+  line-height: 1.6;
+}
+
+.frase-curta {
+  font-style: italic;
+  color: var(--gold);
+}
+
+/* ── PROFISSÕES ── */
+.prof-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.2fr;
+  gap: 14px;
+}
+
+.prof-card { display: flex; flex-direction: column; gap: 8px; }
+
+.prof-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.prof-tag {
   font-size: 11px;
-  font-weight: bold;
-  background: #1c2a3a;
-  color: white;
+  padding: 4px 10px;
+  border-radius: 4px;
+  background: var(--bg-deep);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+}
+
+.prof-tag-gold {
+  background: var(--gold-dim);
+  border-color: var(--gold-border);
+  color: var(--gold);
+  font-weight: 600;
+}
+
+.prof-obs {}
+.prof-orientacao {
+  font-size: 12px;
+  color: var(--text);
+  line-height: 1.6;
+}
+
+.prof-flags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.prof-flag {
+  font-size: 10px;
   padding: 2px 8px;
+  border-radius: 3px;
+  background: var(--blue-surface);
+  border: 1px solid var(--border-blue);
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
-.tabela-dup-wrapper {
-  overflow-x: auto;
-  padding: 0 6px;
+/* ── ANO PESSOAL ── */
+.ano-card {}
+
+.ano-inner {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
 }
 
-.tabela-dup {
-  min-width: 600px;
+.ano-numero-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 80px;
 }
+
+.ano-label {
+  font-size: 10px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.ano-numero {
+  font-size: 44px;
+  font-weight: 800;
+  color: var(--gold);
+  text-shadow: 0 0 12px rgba(201,162,39,0.5);
+  line-height: 1;
+}
+
+.cts-wrap {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.ct-box {
+  width: 52px;
+  height: 52px;
+  font-size: 16px;
+}
+
+.periodo-ap { display: flex; flex-direction: column; gap: 4px; }
+.periodo-txt { font-size: 13px; color: var(--text); }
+
+/* ── ANÁLISES ── */
+.analises-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+.analise-card { display: flex; flex-direction: column; gap: 8px; }
+.analise-title {
+  font-size: 10px;
+  color: var(--text-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 6px;
+}
+
+.analise-boxes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.box-ausencia {
+  background: var(--bg-deep);
+  border: 1px solid var(--border);
+  color: var(--text-dim);
+  font-size: 13px;
+  font-weight: 600;
+  width: 34px;
+  height: 34px;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.badge-dupla {
+  background: var(--gold-dim);
+  border: 1px solid var(--gold-border);
+  color: var(--gold);
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.badge-dupla small {
+  font-size: 10px;
+  font-weight: 400;
+  opacity: 0.7;
+}
+
+.pureza-rows { display: flex; flex-direction: column; gap: 6px; }
+
+.pureza-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.pureza-val {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.text-dim-sm { font-size: 12px; color: var(--text-dim); }
+
+/* ── ANOS AP9 ── */
+.anos-ap9 {}
+.ap9-lista { display: flex; flex-wrap: wrap; gap: 4px; font-size: 12px; color: var(--text-dim); }
+.ap9-item { white-space: nowrap; }
+
+/* ── TABELA DUPLICIDADES ── */
+.tabela-dup-wrap {}
 
 .dup-nav {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 4px 0;
-  font-size: 10px;
+  gap: 10px;
+  margin-bottom: 8px;
 }
 
-.dup-nav-btn {
-  background: #1c2a3a;
-  color: white;
-  border: none;
-  padding: 1px 6px;
+.btn-nav {
+  background: var(--bg-deep);
+  color: var(--gold);
+  border: 1px solid var(--border);
+  padding: 2px 8px;
+  border-radius: 4px;
   cursor: pointer;
-  font-size: 11px;
+  font-size: 12px;
 }
 
-.dup-nav-label {
-  color: #555;
-}
+.tabela-dup { overflow-x: auto; }
 
 .dup-linha-header,
 .dup-linha-status,
@@ -1241,449 +898,42 @@ async function baixarPDF() {
   align-items: center;
 }
 
-.dup-cell-label {
-  width: 24px;
-  font-size: 9px;
-  font-weight: bold;
-  color: #333;
+.dup-cell-lbl {
+  width: 26px;
+  font-size: 8px;
+  font-weight: 700;
+  color: var(--text-dim);
   text-align: right;
   padding-right: 4px;
   flex-shrink: 0;
 }
 
-.dup-cell-label-sm {
-  font-size: 8px;
-}
-
-.dup-cell-idade {
-  width: 24px;
+.dup-cell {
+  width: 26px;
   text-align: center;
-  font-size: 9px;
-  color: #444;
+  font-size: 8px;
+  color: var(--text-dim);
   flex-shrink: 0;
   padding: 1px;
 }
 
-.dup-cell-status {
-  width: 24px;
-  text-align: center;
-  flex-shrink: 0;
-  padding: 1px;
-}
+.dup-num { font-size: 7px; color: var(--border); }
 
-.dup-cell-vn {
-  width: 24px;
-  text-align: center;
-  font-size: 8px;
-  color: #999;
-  flex-shrink: 0;
-  padding: 1px;
-}
-
-.dup-num {
-  font-size: 8px;
-  color: #bbb;
-}
-
-.dup-badge-cell {
+.dup-badge {
   display: inline-block;
-  font-size: 8px;
-  font-weight: bold;
+  font-size: 7px;
+  font-weight: 700;
   padding: 0 2px;
+  border-radius: 2px;
 }
 
-.badge-d {
-  background: #d4873a;
-  color: white;
-}
+.badge-gold { background: var(--gold); color: var(--text-dark); }
+.badge-dim { background: var(--blue-surface); color: var(--text); }
 
-.badge-t {
-  background: #1c2a3a;
-  color: white;
-}
-
-/* ============================================================
-   PERCENTUAIS POR CICLO
-============================================================ */
-.secao-percentuais {
-  padding: 8px 16px;
-  border-top: 2px solid #ccc;
-}
-
-.tabela-pct {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 11px;
-}
-
-.pct-th-label {
-  text-align: left;
-  width: 260px;
-  padding: 2px 0;
-}
-
-.pct-th {
-  text-align: center;
-  font-size: 10px;
-  color: #333;
-  padding: 2px 4px;
-  width: 70px;
-}
-
-.pct-th-obs {
-  width: 80px;
-}
-
-.pct-td-label {
-  font-size: 11px;
-  color: #222;
-  padding: 1px 0;
-}
-
-.pct-td-indent {
-  padding-left: 16px;
-}
-
-.pct-dots {
-  color: #aaa;
-  font-size: 9px;
-}
-
-.pct-td {
-  text-align: center;
-  font-size: 11px;
-  color: #333;
-}
-
-.pct-td-obs {
-  border-left: 1px solid #ccc;
-}
-
-.pct-spacer td {
-  height: 8px;
-}
-
-.pct-linha-cp td {
-  border-top: 1.5px solid #333;
-  padding-top: 2px;
-}
-
-.pct-label-cp {
-  font-weight: bold;
-  font-size: 10px;
-  padding-left: 120px;
-}
-
-/* ============================================================
-   MULTI-ANO AP (Anterior, Atual, Próximo)
-============================================================ */
-.bloco-ano-ap {
-  display: flex;
-  border: 1px solid #333;
-  margin: 8px;
-  min-height: 120px;
-}
-
-.bloco-ano-lateral {
-  writing-mode: vertical-rl;
-  transform: rotate(180deg);
-  background: #1c2a3a;
-  color: white;
-  font-size: 10px;
-  font-weight: bold;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 4px 3px;
-  width: 22px;
-  letter-spacing: 1px;
-}
-
-.label-periodo {
-  white-space: nowrap;
-}
-
-.bloco-ano-conteudo {
-  flex: 1;
-  padding: 6px 8px;
-}
-
-.ap-ano-header {
-  display: flex;
-  gap: 12px;
-  align-items: flex-start;
-}
-
-.ap-ano-codigo {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  min-width: 60px;
-}
-
-.ap-codigo-letras {
-  display: flex;
-  gap: 2px;
-  font-size: 9px;
-  color: #555;
-  font-weight: bold;
-}
-
-.ap-ano-numero {
-  font-size: 13px;
-  font-weight: bold;
-  color: #111;
-}
-
-.cts-lista {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.ct-item {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.ct-label {
-  font-size: 10px;
-  font-weight: bold;
-  color: #333;
-  min-width: 28px;
-}
-
-.ct-box {
-  width: 32px;
-  height: 26px;
-  font-size: 12px;
-}
-
-.ct-periodo {
-  font-size: 9px;
-  color: #555;
-}
-
-.mensais-lista {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1px 8px;
-  font-size: 10px;
-}
-
-.mensal-item {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.mensal-nome {
-  width: 32px;
-  color: #333;
-}
-
-.mensal-sep {
-  color: #999;
-}
-
-.mensal-valor {
-  font-weight: bold;
-  color: #111;
-}
-
-.bloco-ano-ano-vert {
-  writing-mode: vertical-rl;
-  background: white;
-  border-left: 1px solid #333;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 22px;
-  font-size: 11px;
-  color: #333;
-}
-
-.ano-vertical {
-  transform: rotate(180deg);
-  font-weight: bold;
-}
-
-/* ============================================================
-   LIGAÇÕES FAMILIARES
-============================================================ */
-.secao-ligacoes {
-  border-top: 1px solid #ccc;
-  padding: 8px 16px;
-  display: flex;
-  align-items: flex-start;
-  gap: 24px;
-  flex-wrap: wrap;
-}
-
-.tabela-ligacoes {
-  border-collapse: collapse;
-  font-size: 11px;
-  flex: 1;
-}
-
-.lig-titulo {
-  background: white;
-  text-align: center;
-  font-weight: bold;
-  font-size: 11px;
-  padding: 2px 8px;
-  border: 1px solid #999;
-}
-
-.tabela-ligacoes td {
-  padding: 2px 6px;
-  border: none;
-  font-size: 11px;
-  color: #222;
-}
-
-.lig-pos {
-  font-weight: bold;
-  width: 28px;
-}
-
-.lig-vn {
-  width: 24px;
-}
-
-.lig-desc {
-  min-width: 180px;
-  color: #444;
-}
-
-.lig-familiar {
-  color: #333;
-  font-style: italic;
-}
-
-.profissional-espiritualidade {
-  font-size: 11px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  align-self: flex-end;
-  padding-bottom: 8px;
-}
-
-.esp-badge {
-  padding: 1px 10px;
-  font-size: 11px;
-  font-weight: bold;
-}
-
-.esp-sim {
-  background: #c8f0a0;
-  color: #234;
-  border: 1px solid #aaa;
-}
-
-.esp-nao {
-  background: #e0e0e0;
-  color: #555;
-  border: 1px solid #aaa;
-}
-
-/* ============================================================
-   ORIENTAÇÃO PROFISSIONAL
-============================================================ */
-.secao-prof {
-  padding: 8px 8px;
-  border-top: 1px solid #ccc;
-}
-
-.prof-passos {
-  display: flex;
-  gap: 0;
-}
-
-.passo-col {
-  flex: 1;
-  border: 1px solid #ccc;
-  margin-right: -1px;
-  min-width: 0;
-}
-
-.passo-header {
-  display: flex;
-  justify-content: space-between;
-  background: #1c2a3a;
-  color: white;
-  padding: 2px 6px;
-  font-size: 10px;
-  font-weight: bold;
-}
-
-.passo-titulo {
-  font-size: 10px;
-}
-
-.passo-inc-titulo {
-  font-size: 9px;
-  text-align: right;
-}
-
-.passo-inc-titulo small {
-  font-weight: normal;
-  font-size: 8px;
-}
-
-.prof-linha {
-  display: flex;
-  justify-content: space-between;
-  padding: 1px 6px;
-  font-size: 10px;
-  border-bottom: 1px solid #f0f0f0;
-  min-height: 16px;
-}
-
-.prof-linha.prof-destaque {
-  font-weight: bold;
-  color: #000;
-}
-
-.prof-nome {
-  flex: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  color: #222;
-}
-
-.prof-inc {
-  min-width: 20px;
-  text-align: right;
-  color: #333;
-  font-size: 10px;
-}
-
-.passo-footer {
-  text-align: center;
-  font-size: 10px;
-  font-weight: bold;
-  padding: 2px;
-  background: #f0f0f0;
-  border-top: 1px solid #ccc;
-}
-
-/* ============================================================
-   PRINT
-============================================================ */
+/* ── PRINT ── */
 @media print {
-  .btn-acao, .cab-acoes, .dup-nav-btn {
-    display: none !important;
-  }
-  .folha {
-    border: none;
-    margin: 0;
-    page-break-after: always;
-  }
+  .cab-acoes, .btn-sm, .dup-nav { display: none !important; }
+  .card { border: 1px solid #333; }
+  body { background: white; color: black; }
 }
 </style>

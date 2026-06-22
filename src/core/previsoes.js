@@ -159,7 +159,11 @@ export function calcularMesUniversal(mes, au) {
  * }}
  */
 export function calcularPrevisaoAnual(diaNasc, mesNasc, anoInteresse, cicloAtual, realizacaoAtual, dm) {
-  const ap = calcularAP(diaNasc, mesNasc, anoInteresse)
+  const hoje = new Date()
+  const anoAtual = hoje.getFullYear()
+  const mesAtual = anoInteresse === anoAtual ? hoje.getMonth() + 1 : undefined
+  const diaAtual = anoInteresse === anoAtual ? hoje.getDate() : undefined
+  const ap = calcularAP(diaNasc, mesNasc, anoInteresse, mesAtual, diaAtual)
   const cts = calcularCTs(ap, cicloAtual, realizacaoAtual, dm)
 
   const mesNascStr = String(mesNasc).padStart(2, '0')
