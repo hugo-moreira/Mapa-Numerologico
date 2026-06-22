@@ -5,19 +5,44 @@
     <div class="entrada-hero">
       <p class="eyebrow">Numerologia Pitagórica</p>
       <h1 class="headline">Descubra sua<br><em>Jornada Numerológica</em></h1>
-      <p class="subline">Insira nome e data de nascimento para revelar os padrões que governam sua existência</p>
+      <p class="subline">Insira apenas a data para a jornada de vida, ou adicione o nome para o mapa completo</p>
 
       <div class="form-mystic">
         <form @submit.prevent="calcular" novalidate>
-          <label class="m-label">Nome completo de registro</label>
-          <input
-            v-model="nome"
-            type="text"
-            placeholder="Ex: Maria Aparecida da Silva"
-            class="m-input"
-            autocomplete="off"
-          />
 
+          <!-- Seletor de modo -->
+          <div class="modo-toggle">
+            <button
+              type="button"
+              :class="['modo-btn', modo === 'jornada' ? 'modo-ativo' : '']"
+              @click="modo = 'jornada'"
+            >
+              <span class="modo-glyph">◎</span>
+              Apenas data
+            </button>
+            <button
+              type="button"
+              :class="['modo-btn', modo === 'mapa' ? 'modo-ativo' : '']"
+              @click="modo = 'mapa'"
+            >
+              <span class="modo-glyph">✦</span>
+              Mapa completo
+            </button>
+          </div>
+
+          <!-- Nome — só no modo mapa -->
+          <div v-if="modo === 'mapa'" class="campo-wrap">
+            <label class="m-label">Nome completo de registro</label>
+            <input
+              v-model="nome"
+              type="text"
+              placeholder="Ex: Maria Aparecida da Silva"
+              class="m-input"
+              autocomplete="off"
+            />
+          </div>
+
+          <!-- Data -->
           <label class="m-label">Data de nascimento</label>
           <div class="m-date-grid">
             <div>
@@ -31,28 +56,24 @@
             </div>
           </div>
 
-          <p v-if="mapaStore.erro" class="m-erro">{{ mapaStore.erro }}</p>
+          <p v-if="erro" class="m-erro">{{ erro }}</p>
 
-          <button type="submit" class="btn-mystic">Revelar Mapa Numerológico</button>
+          <button type="submit" class="btn-mystic">
+            {{ modo === 'mapa' ? 'Revelar Mapa Completo' : 'Ver Jornada de Vida' }}
+          </button>
         </form>
       </div>
 
-      <div class="entrada-features">
-        <div class="feature-item">
-          <span class="feature-glyph">✦</span>
-          <span>5 Núcleos do Ser</span>
+      <!-- Descrição dos modos -->
+      <div class="modos-desc">
+        <div class="modo-desc-item" :class="{ 'modo-desc-ativo': modo === 'jornada' }">
+          <p class="modo-desc-titulo">Jornada de Vida (só data)</p>
+          <p class="modo-desc-txt">CD · Ciclos · Aprendizados · Realizações · Ano Pessoal</p>
         </div>
-        <div class="feature-item">
-          <span class="feature-glyph">◎</span>
-          <span>Ciclos de Vida</span>
-        </div>
-        <div class="feature-item">
-          <span class="feature-glyph">△</span>
-          <span>Realizações</span>
-        </div>
-        <div class="feature-item">
-          <span class="feature-glyph">⊕</span>
-          <span>Previsão Anual</span>
+        <div class="modo-desc-sep">ou</div>
+        <div class="modo-desc-item" :class="{ 'modo-desc-ativo': modo === 'mapa' }">
+          <p class="modo-desc-titulo">Mapa Completo (nome + data)</p>
+          <p class="modo-desc-txt">Personalidade · Alma · Jornada · Profissões · Previsões</p>
         </div>
       </div>
     </div>
@@ -63,19 +84,45 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useMapaStore } from '../stores/mapa.js'
+import { useJornadaStore } from '../stores/jornadaStore.js'
 
 const router = useRouter()
 const mapaStore = useMapaStore()
+const jornadaStore = useJornadaStore()
 
+const modo = ref('jornada')
 const nome = ref('')
 const dia = ref(null)
 const mes = ref(null)
 const ano = ref(null)
+const erro = ref('')
 
 function calcular() {
-  mapaStore.calcular(nome.value, dia.value, mes.value, ano.value)
-  if (mapaStore.calculado) {
-    router.push('/mapa')
+  erro.value = ''
+
+  if (!dia.value || !mes.value || !ano.value) {
+    erro.value = 'Preencha dia, mês e ano de nascimento.'
+    return
+  }
+
+  if (modo.value === 'mapa') {
+    if (!nome.value.trim()) {
+      erro.value = 'Informe o nome completo para o mapa completo.'
+      return
+    }
+    mapaStore.calcular(nome.value.trim(), dia.value, mes.value, ano.value)
+    if (mapaStore.calculado) {
+      router.push('/mapa')
+    } else if (mapaStore.erro) {
+      erro.value = mapaStore.erro
+    }
+  } else {
+    jornadaStore.calcular(dia.value, mes.value, ano.value)
+    if (jornadaStore.calculado) {
+      router.push('/jornada')
+    } else if (jornadaStore.erro) {
+      erro.value = jornadaStore.erro
+    }
   }
 }
 </script>
@@ -140,19 +187,20 @@ function calcular() {
 }
 
 .subline {
-  font-size: 14px;
+  font-size: 13px;
   color: var(--text-dim);
   text-align: center;
-  margin-bottom: 40px;
+  margin-bottom: 36px;
   max-width: 380px;
   line-height: 1.6;
 }
 
+/* ── FORM ── */
 .form-mystic {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 14px;
-  padding: 32px 36px;
+  padding: 28px 32px;
   width: 100%;
   position: relative;
 }
@@ -162,9 +210,57 @@ function calcular() {
   position: absolute;
   inset: -1px;
   border-radius: 14px;
-  background: linear-gradient(135deg, rgba(201,162,39,0.2) 0%, transparent 50%);
+  background: linear-gradient(135deg, rgba(201,162,39,0.15) 0%, transparent 50%);
   pointer-events: none;
   z-index: -1;
+}
+
+/* ── TOGGLE DE MODO ── */
+.modo-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 24px;
+  background: var(--bg-deep);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 4px;
+}
+
+.modo-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text-dim);
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.18s;
+  font-weight: 400;
+}
+
+.modo-btn:hover {
+  color: var(--text);
+}
+
+.modo-btn.modo-ativo {
+  background: var(--gold);
+  color: var(--text-dark);
+  font-weight: 700;
+}
+
+.modo-glyph {
+  font-size: 14px;
+}
+
+/* ── CAMPOS ── */
+.campo-wrap {
+  margin-bottom: 0;
 }
 
 .m-label {
@@ -199,7 +295,6 @@ function calcular() {
   color: #3a5070;
 }
 
-/* Remove spinners dos inputs numéricos */
 .m-input[type=number]::-webkit-inner-spin-button,
 .m-input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; }
 .m-input[type=number] { -moz-appearance: textfield; }
@@ -208,19 +303,17 @@ function calcular() {
   display: grid;
   grid-template-columns: 1fr 1fr 1.5fr;
   gap: 12px;
-  margin-bottom: 0;
 }
 
 .m-date-grid .m-input {
   text-align: center;
-  margin-bottom: 20px;
 }
 
 .m-erro {
   color: #e05a5a;
-  font-size: 13px;
+  font-size: 12px;
   text-align: center;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
   margin-top: -8px;
 }
 
@@ -245,24 +338,49 @@ function calcular() {
   opacity: 0.9;
 }
 
-.entrada-features {
-  display: flex;
-  gap: 28px;
-  margin-top: 36px;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-
-.feature-item {
+/* ── DESCRIÇÃO DOS MODOS ── */
+.modos-desc {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  color: var(--text-dim);
+  gap: 16px;
+  margin-top: 28px;
+  width: 100%;
 }
 
-.feature-glyph {
+.modo-desc-item {
+  flex: 1;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.modo-desc-item.modo-desc-ativo {
+  border-color: var(--gold-border);
+  background: var(--gold-dim);
+}
+
+.modo-desc-titulo {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.modo-desc-ativo .modo-desc-titulo {
   color: var(--gold);
-  font-size: 14px;
+}
+
+.modo-desc-txt {
+  font-size: 11px;
+  color: var(--text-dim);
+  line-height: 1.5;
+}
+
+.modo-desc-sep {
+  font-size: 11px;
+  color: var(--border);
+  flex-shrink: 0;
 }
 </style>
